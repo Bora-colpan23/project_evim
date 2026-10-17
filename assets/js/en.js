@@ -19,6 +19,7 @@ export const EN = {
   'Abonelik': 'Subscription',
   'Abonelik gerekli': 'Subscription required',
   'Abonelik, dönem bitmeden en az 24 saat önce iptal edilmezse aynı süre ve fiyatla kendiliğinden yenilenir. İptal ve yönetim, satın aldığın mağazanın hesap ayarlarından yapılır.': 'The subscription renews automatically for the same period and price unless cancelled at least 24 hours before the period ends. Cancel and manage it in the account settings of the store you bought it from.',
+  'Aboneliği Evim’in iPhone ya da Android uygulamasından başlatabilirsin; aynı hesapla web’de de geçerli olur.': 'Start your subscription in the Evim iPhone or Android app; it’s valid on the web with the same account.',
   'Aboneliği görüntüle': 'View subscription',
   'Aboneliği yönet': 'Manage subscription',
   'Aboneliğin aktif': 'Your subscription is active',

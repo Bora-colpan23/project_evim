@@ -11,7 +11,7 @@ import { searchBody, isCurrent, installBlock, langSwitch } from './views.js';
 import { esc, opts, tl, fmt, fmtFull, monthYear, parse, iso, t0, daysTo, tm, ago } from './util.js';
 import { screenMap } from './router.js';
 import { LIVE, CONFIG } from './config.js';
-import { access, trialDaysLeft, planPrices, manageUrl, platform, PLAN_LABEL } from './billing.js';
+import { access, trialDaysLeft, planPrices, manageUrl, platform, PLAN_LABEL, canPurchaseHere } from './billing.js';
 import { isNative, lockEnabled, nativePlatform } from './native.js';
 import { live, mediaSrc, inviteLink, markInboxRead, pushState } from './backend.js';
 import { isStored, storedPath } from './mapping.js';
@@ -578,7 +578,14 @@ function subscriptionSheet(){
         '<span class="price">'+(prices[pl.id] ? esc(prices[pl.id]) : '—')+'</span>' +
         '<span class="muted" style="font-size:12.5px">'+(pl.id === 'annual' ? t('yıllık ödenir') : t('aylık ödenir'))+'</span></button>').join('') + '</div>' +
     (Object.values(prices).some(Boolean) ? '' : '<div class="muted" style="font-size:12.5px">'+t('Fiyatlar mağaza hesapları bağlanınca burada görünür.')+'</div>') +
-    '<button class="btn primary block" data-act="subscribe" data-v="'+esc(selected)+'">'+t('Abone ol')+'</button>';
+    (canPurchaseHere()
+      ? '<button class="btn primary block" data-act="subscribe" data-v="'+esc(selected)+'">'+t('Abone ol')+'</button>'
+      : '<div class="note">'+t('Aboneliği Evim’in iPhone ya da Android uygulamasından başlatabilirsin; aynı hesapla web’de de geçerli olur.')+'</div>' +
+        ((CONFIG.billing.appStoreUrl || CONFIG.billing.playStoreUrl)
+          ? '<div class="row" style="gap:8px">' +
+              (CONFIG.billing.appStoreUrl ? '<a class="btn ghost" style="flex:1" href="'+esc(CONFIG.billing.appStoreUrl)+'" target="_blank" rel="noopener">App Store</a>' : '') +
+              (CONFIG.billing.playStoreUrl ? '<a class="btn ghost" style="flex:1" href="'+esc(CONFIG.billing.playStoreUrl)+'" target="_blank" rel="noopener">Google Play</a>' : '') + '</div>'
+          : ''));
 
   const store = platform() === 'ios' ? 'App Store' : platform() === 'android' ? 'Google Play' : '';
   const legal = '<p class="fine">' +

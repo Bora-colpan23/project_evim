@@ -20,21 +20,25 @@ export const CONFIG = Object.assign({
   supabaseUrl: '',
   supabaseAnonKey: '',
   vapidPublicKey: '',
-  // Uygulamanın yayın adresi (ör. https://evim.app/). Davet ve e-posta bağlantıları
-  // bu adresle üretilir; telefonda uygulamayı doğrudan açar (docs/mobil.md).
-  publicUrl: '',
+  // Uygulamanın yayın adresi. Davet ve e-posta bağlantıları bu adresle üretilir;
+  // telefonda uygulamayı doğrudan açar (docs/mobil.md).
+  publicUrl: 'https://evim.online/',
   billing: {
     revenuecatIosKey: '',       // RevenueCat → Apps → App Store uygulaması → Public API key (appl_…)
     revenuecatAndroidKey: '',   // RevenueCat → Apps → Play Store uygulaması → Public API key (goog_…)
+    // Web'den kartla satış: boşken web'deki abonelik sayfası telefondan abone olmayı anlatır.
     webPurchaseUrl: '',         // RevenueCat Web Purchase Link (https://pay.rev.cat/…); kullanıcı kimliği sona eklenir
     webManageUrl: '',           // web aboneleri için abonelik yönetimi sayfası
     termsUrl: '',               // kullanım koşulları (mağazalar zorunlu tutar)
     privacyUrl: '',             // gizlilik politikası
-    androidPackage: 'app.evim', // Play Store abonelik yönetimi bağlantısı için
-    // Mağazadaki paketler. Fiyat mobilde mağazadan okunur; web'de burada yazan gösterilir.
+    appStoreUrl: '',            // yayından sonra: https://apps.apple.com/tr/app/…
+    playStoreUrl: '',           // yayından sonra: https://play.google.com/store/apps/details?id=online.evim.app
+    androidPackage: 'online.evim.app', // Play Store abonelik yönetimi bağlantısı için
+    // Mağazadaki paketler. Fiyat mobilde mağazadan okunur; web'de burada yazan gösterilir
+    // (App Store Connect ve Play Console'daki fiyatla aynı tutulmalı).
     plans: [
-      { id:'monthly', package:'$rc_monthly', price:'' },
-      { id:'annual',  package:'$rc_annual',  price:'' }
+      { id:'monthly', package:'$rc_monthly', price:'₺249,99' },
+      { id:'annual',  package:'$rc_annual',  price:'₺2.499,99' }
     ]
   },
   // supabase-js modülünün adresi (testler sahte bir sürümle değiştirir).

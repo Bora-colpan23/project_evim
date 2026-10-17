@@ -128,6 +128,15 @@ export async function purchase(planId){
   return 'redirect';
 }
 
+/**
+ * Bu ortamda satın alma başlatılabilir mi? Web'de yalnızca web ödeme bağlantısı
+ * tanımlıysa; tanımlı değilse abonelik telefondaki uygulamadan alınır ve aynı
+ * hesapla web'de de geçerli olur.
+ */
+export function canPurchaseHere(){
+  return !LIVE || platform() !== 'web' || !!CONFIG.billing.webPurchaseUrl;
+}
+
 /** Önceki satın alımları geri yükler (Apple bu düğmeyi zorunlu tutar). */
 export async function restore(){
   if (!LIVE) return access().subscribed;

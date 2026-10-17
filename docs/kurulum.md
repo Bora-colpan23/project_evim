@@ -43,7 +43,7 @@ Kuralların tamamı `tests/sql.spec.mjs` içinde gerçek bir Postgres'e karşı 
 
 **Authentication → URL Configuration**
 
-- **Site URL**: uygulamanın yayın adresi, ör. `https://KULLANICI.github.io/project_evim/`
+- **Site URL**: uygulamanın yayın adresi, `https://evim.online/`
 - **Redirect URLs**: aynı adresi ekle. Yerelde deneyeceksen `http://localhost:8000/` da ekle.
 
 **Authentication → Providers → Email**
@@ -96,7 +96,7 @@ npx supabase secrets set \
   VAPID_PRIVATE_KEY="..." \
   VAPID_SUBJECT="mailto:senin@adresin.com" \
   WEBHOOK_SECRET="uzun-rastgele-bir-deger" \
-  APP_URL="https://KULLANICI.github.io/project_evim/"
+  APP_URL="https://evim.online/"
 
 npx supabase functions deploy push --no-verify-jwt
 ```
@@ -144,14 +144,32 @@ RevenueCat kurulumu ile `billing` fonksiyonu için: [abonelik.md](abonelik.md).
 Abonelik kurulmadan da uygulama çalışır: her mülk sahibi 14 günlük denemeyle
 başlar.
 
-## 7. GitHub Pages
+## 7. GitHub Pages ve evim.online
 
-Depo → **Settings → Pages → Source: GitHub Actions**. Varsayılan dala her
-push'ta site `https://KULLANICI.github.io/project_evim/` adresinde güncellenir.
+1. Depo → **Settings → Pages → Source: GitHub Actions**.
+2. Alan adını aldığın firmanın DNS panelinde şu kayıtları ekle:
 
-Kendi alan adını kullanacaksan Pages ayarlarından ekle ve 3. adımdaki
-Supabase adreslerini de güncelle. Telefon uygulamasının bağlantıları için de
-alan adı gerekir: [mobil.md](mobil.md#3-bağlantıların-uygulamayı-açması).
+| Tür | Ad | Değer |
+| --- | --- | --- |
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| AAAA | `@` | `2606:50c0:8000::153` |
+| AAAA | `@` | `2606:50c0:8001::153` |
+| AAAA | `@` | `2606:50c0:8002::153` |
+| AAAA | `@` | `2606:50c0:8003::153` |
+| CNAME | `www` | `fahricankuz.github.io` |
+
+3. Settings → Pages → **Custom domain**: `evim.online` → Save. DNS yayılınca
+   (birkaç dakika–birkaç saat) **Enforce HTTPS** kutusunu işaretle.
+4. Güvenlik için alan adını GitHub hesabına da doğrula: profil → Settings →
+   Pages → *Add a domain* (verilen TXT kaydını DNS'e ekle). Bu, başkasının
+   alan adını kendi sitesine bağlamasını engeller.
+
+Bundan sonra varsayılan dala her gönderimde site `https://evim.online/`
+adresinde güncellenir. Telefon uygulamasının bağlantıları da bu alan adıyla
+çalışır: [mobil.md](mobil.md#3-bağlantıların-uygulamayı-açması).
 
 ## 8. Kontrol listesi
 

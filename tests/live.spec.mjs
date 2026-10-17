@@ -233,9 +233,10 @@ test('yeni mülk sahibi deneme sürümüyle başlar; kiracıda abonelik yok', as
   await expect(sheet(page).locator('h3')).toHaveText('Mülk sahibi aboneliği');
   await expect(sheet(page)).toContainText('kendiliğinden yenilenir');
   await expect(sheet(page).locator('.plan')).toHaveCount(2);
-  // Web ödeme bağlantısı tanımlı değilse açık bir hata verilir.
-  await sheet(page).locator('button[data-act=subscribe]').click();
-  await expect(page.locator('#banners')).toContainText('Web ödeme bağlantısı henüz tanımlı değil');
+  // Web'den satış kapalıyken: fiyatlar görünür, abonelik telefondaki uygulamaya yönlendirilir.
+  await expect(sheet(page).locator('.plan[data-v=monthly] .price')).toHaveText('₺249,99');
+  await expect(sheet(page).locator('button[data-act=subscribe]')).toHaveCount(0);
+  await expect(sheet(page)).toContainText('iPhone ya da Android uygulamasından');
   await page.keyboard.press('Escape');
 
   await logout(page);

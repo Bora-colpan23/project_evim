@@ -1,4 +1,4 @@
-package app.evim;
+package online.evim.app;
 
 import com.getcapacitor.BridgeActivity;
 

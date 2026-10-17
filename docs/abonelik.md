@@ -39,17 +39,27 @@ Deneme süresi `supabase/schema.sql` içindeki `trial_days()` fonksiyonundadır
 
 ## 1. Planlar ve fiyatlar
 
-Önce kararını ver:
-
-| | Önerilen başlangıç |
+| | Karar |
 | --- | --- |
-| Planlar | Aylık ve yıllık (yıllıkta ~2 ay indirim yaygındır) |
+| Satıcı | Şirket (App Store ve Google Play'de şirket hesabı) |
+| Planlar | Aylık **₺249,99**, yıllık **₺2.499,99** (yıllıkta 2 ay bedava) |
+| Satış kanalı | Başlangıçta yalnızca App Store ve Google Play; web'den abone olan yok (aşağıya bak) |
 | Ürün kimlikleri | `evim_aylik`, `evim_yillik` |
 | RevenueCat yetkisi (entitlement) | `pro` |
 | RevenueCat paketleri | `$rc_monthly`, `$rc_annual` |
 
-Kimlikleri değiştirirsen `assets/js/config.js` → `billing.plans` içindeki
-`package` değerlerini de değiştir.
+Fiyatı mağazalarda değiştirirsen `assets/js/config.js` → `billing.plans`
+içindeki `price` değerini de güncelle (web'deki abonelik sayfası bunu gösterir).
+
+**Komisyon:** Apple *App Store Small Business Program*'a ve Google Play'in
+abonelik oranına göre ilk yıl gelirin %15'i mağazada kalır. Apple programına
+App Store Connect üzerinden ayrıca başvurulur.
+
+**Neden web'den satış yok:** RevenueCat'in web ödemesi Stripe ile çalışır ve
+Stripe Türkiye'de kurulu şirketleri kabul etmez. Web'deki abonelik sayfası bu
+yüzden telefondan abone olmayı anlatır; telefondan abone olan kullanıcı aynı
+hesapla web'de de abone sayılır. Web'den satış gerekirse iyzico ya da PayTR
+ile ayrı bir entegrasyon eklenir.
 
 ## 2. App Store Connect (iPhone)
 
@@ -84,8 +94,8 @@ Connect'te oluşturulmuş uygulama kaydı (bkz. `docs/mobil.md`).
 ## 4. RevenueCat
 
 1. revenuecat.com → yeni proje ("Evim").
-2. **Apps** → *App Store* uygulaması ekle (bundle id: `app.evim`, .p8 anahtarı,
-   Issuer ID, Key ID). *Play Store* uygulaması ekle (paket adı: `app.evim`,
+2. **Apps** → *App Store* uygulaması ekle (bundle id: `online.evim.app`, .p8 anahtarı,
+   Issuer ID, Key ID). *Play Store* uygulaması ekle (paket adı: `online.evim.app`,
    hizmet hesabı JSON'u).
 3. **Products** → mağazalardaki dört ürünü içe aktar.
 4. **Entitlements** → `pro` oluştur, dört ürünü bağla.
@@ -97,7 +107,7 @@ Connect'te oluşturulmuş uygulama kaydı (bkz. `docs/mobil.md`).
    - **Secret key** (`sk_…`) → yalnızca Supabase gizli değişkenine (adım 6).
      Bunu asla `config.js`'e ya da depoya yazma.
 
-### Web'den satış (isteğe bağlı)
+### Web'den satış (şimdilik kullanılmıyor — yalnızca Türkiye dışında kurulu bir Stripe hesabıyla)
 
 Web sitesinden abone olmak isteyenler için:
 

@@ -257,6 +257,10 @@ $$;
 grant execute on function public.is_admin() to authenticated;
 
 -- Bu yükleme denetimden geçmemiş mi? (kayıt yoksa eski/denetimsiz sayılır, görünür)
+-- Uygulama belge ve fatura yollarını "sb:<yol>" biçiminde saklar; depodaki gerçek ad önek olmadan.
+create or replace function public.storage_path(v text)
+returns text language sql immutable as $$ select nullif(regexp_replace(coalesce(v, ''), '^sb:', ''), '') $$;
+
 create or replace function public.file_review_ok(pth text)
 returns boolean language sql stable security definer set search_path = public as $$
   select not exists (select 1 from public.reviews where path = pth and status <> 'approved')
@@ -933,7 +937,7 @@ create or replace function public.track_document_review()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if tg_op = 'INSERT' or new.path is distinct from old.path or new.name is distinct from old.name then
-    perform public.upsert_review('document', new.property_id, new.id, coalesce(new.uploaded_by, auth.uid()), new.name, new.path, null);
+    perform public.upsert_review('document', new.property_id, new.id, coalesce(new.uploaded_by, auth.uid()), new.name, public.storage_path(new.path), null);
   end if;
   return new;
 end $$;
@@ -949,7 +953,7 @@ begin
   if tg_op = 'INSERT' or (new.invoice -> 'path') is distinct from (old.invoice -> 'path')
      or (new.invoice -> 'amount') is distinct from (old.invoice -> 'amount') then
     perform public.upsert_review('invoice', new.property_id, new.id, auth.uid(), coalesce(new.invoice ->> 'name', 'fatura'),
-                                 new.invoice ->> 'path', nullif(new.invoice ->> 'amount', '')::numeric);
+                                 public.storage_path(new.invoice ->> 'path'), nullif(new.invoice ->> 'amount', '')::numeric);
   end if;
   return new;
 end $$;
@@ -1048,14 +1052,14 @@ grant execute on function public.admin_users() to authenticated;
 
 -- Denetim kaydı olmayan eski yüklemeler (bu bölüm eklenmeden önce yüklenenler) onaylı sayılır.
 insert into public.reviews (kind, property_id, ref_id, uploader, label, path, amount, status, note)
-select 'document', property_id, id, uploaded_by, name, path, null, 'approved', null from public.documents
+select 'document', property_id, id, uploaded_by, name, public.storage_path(path), null, 'approved', null from public.documents
 on conflict do nothing;
 insert into public.reviews (kind, property_id, ref_id, uploader, label, path, amount, status, note)
 select 'payment', property_id, month, null, receipt_name, receipt_path, amount, 'approved', null
 from public.payments where status in ('review','partial','approved','rejected') and (receipt_path is not null or receipt_name <> '')
 on conflict do nothing;
 insert into public.reviews (kind, property_id, ref_id, uploader, label, path, amount, status, note)
-select 'invoice', property_id, id, null, coalesce(invoice ->> 'name', 'fatura'), invoice ->> 'path',
+select 'invoice', property_id, id, null, coalesce(invoice ->> 'name', 'fatura'), public.storage_path(invoice ->> 'path'),
        nullif(invoice ->> 'amount', '')::numeric, 'approved', null
 from public.requests where invoice is not null
 on conflict do nothing;

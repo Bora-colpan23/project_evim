@@ -138,7 +138,7 @@ test('yönetici reddeder: gerekçe ile kiracıya döner, mülk sahibi görmez, y
 test('belge: karşı taraf onaydan sonra görür; reddedilirse yükleyen haberdar olur', async () => {
   await putFile('p1/sozlesme.pdf', T);
   await as(T);
-  await db.query(`insert into public.documents (id, property_id, cat, name, path) values ('d1', 'p1', 'Kira sözleşmesi', 'sozlesme.pdf', 'p1/sozlesme.pdf')`);
+  await db.query(`insert into public.documents (id, property_id, cat, name, path) values ('d1', 'p1', 'Kira sözleşmesi', 'sozlesme.pdf', 'sb:p1/sozlesme.pdf')`);
   expect((await q(`select count(*)::int c from public.documents`))[0].c).toBe(1);
   await as(L);
   expect(await q(`select * from public.documents`)).toEqual([]);
@@ -155,7 +155,7 @@ test('belge: karşı taraf onaydan sonra görür; reddedilirse yükleyen haberda
   // Mülk sahibinin belgesi reddedilir; kiracı hiç görmez, mülk sahibi bildirim alır.
   await putFile('p1/ruhsat.pdf', L);
   await as(L);
-  await db.query(`insert into public.documents (id, property_id, cat, name, path) values ('d2', 'p1', 'Diğer', 'ruhsat.pdf', 'p1/ruhsat.pdf')`);
+  await db.query(`insert into public.documents (id, property_id, cat, name, path) values ('d2', 'p1', 'Diğer', 'ruhsat.pdf', 'sb:p1/ruhsat.pdf')`);
   await as(T);
   expect((await q(`select id from public.documents`)).map(r => r.id)).toEqual(['d1']);
   await as(A);
@@ -170,7 +170,7 @@ test('fatura: mülk sahibi ekler, dosya kiracıya onaya kadar kilitli', async ()
   await db.query(`insert into public.requests (id, property_id, cat, title) values ('r1', 'p1', 'Arıza', 'Kombi')`);
   await putFile('p1/fatura.pdf', L);
   await as(L);
-  await db.query(`update public.requests set invoice = '{"name":"fatura.pdf","path":"p1/fatura.pdf","amount":2400,"date":"2026-10-20"}'::jsonb where id = 'r1'`);
+  await db.query(`update public.requests set invoice = '{"name":"fatura.pdf","path":"sb:p1/fatura.pdf","amount":2400,"date":"2026-10-20"}'::jsonb where id = 'r1'`);
   const rv = (await q(`select kind, status, amount::int a from public.reviews where kind = 'invoice'`))[0];
   expect(rv).toEqual({ kind: 'invoice', status: 'pending', a: 2400 });
   expect(await canRead(T, 'p1/fatura.pdf')).toBe(false);

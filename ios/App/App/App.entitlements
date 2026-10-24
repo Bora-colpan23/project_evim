@@ -5,11 +5,11 @@
 	<!-- Anlık bildirim (APNs). Mağaza sürümünde Xcode bunu "production" yapar. -->
 	<key>aps-environment</key>
 	<string>development</string>
-	<!-- Universal Links: https://evim.online/katil/… ve /auth uygulamada açılır.
+	<!-- Universal Links: https://kiracim.online/katil/… ve /auth uygulamada açılır.
 	     Alan adını config.js → publicUrl ile aynı yap (docs/mobil.md). -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:evim.online</string>
+		<string>applinks:kiracim.online</string>
 	</array>
 </dict>
 </plist>

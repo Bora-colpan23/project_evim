@@ -22,7 +22,7 @@ export const CONFIG = Object.assign({
   vapidPublicKey: '',
   // Uygulamanın yayın adresi. Davet ve e-posta bağlantıları bu adresle üretilir;
   // telefonda uygulamayı doğrudan açar (docs/mobil.md).
-  publicUrl: 'https://evim.online/',
+  publicUrl: 'https://kiracim.online/',
   billing: {
     revenuecatIosKey: '',       // RevenueCat → Apps → App Store uygulaması → Public API key (appl_…)
     revenuecatAndroidKey: '',   // RevenueCat → Apps → Play Store uygulaması → Public API key (goog_…)
@@ -32,8 +32,8 @@ export const CONFIG = Object.assign({
     termsUrl: '',               // kullanım koşulları (mağazalar zorunlu tutar)
     privacyUrl: '',             // gizlilik politikası
     appStoreUrl: '',            // yayından sonra: https://apps.apple.com/tr/app/…
-    playStoreUrl: '',           // yayından sonra: https://play.google.com/store/apps/details?id=online.evim.app
-    androidPackage: 'online.evim.app', // Play Store abonelik yönetimi bağlantısı için
+    playStoreUrl: '',           // yayından sonra: https://play.google.com/store/apps/details?id=online.kiracim.app
+    androidPackage: 'online.kiracim.app', // Play Store abonelik yönetimi bağlantısı için
     // Mağazadaki paketler. Fiyat mobilde mağazadan okunur; web'de burada yazan gösterilir
     // (App Store Connect ve Play Console'daki fiyatla aynı tutulmalı).
     plans: [

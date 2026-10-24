@@ -94,8 +94,8 @@ Connect'te oluşturulmuş uygulama kaydı (bkz. `docs/mobil.md`).
 ## 4. RevenueCat
 
 1. revenuecat.com → yeni proje ("Evim").
-2. **Apps** → *App Store* uygulaması ekle (bundle id: `online.evim.app`, .p8 anahtarı,
-   Issuer ID, Key ID). *Play Store* uygulaması ekle (paket adı: `online.evim.app`,
+2. **Apps** → *App Store* uygulaması ekle (bundle id: `online.kiracim.app`, .p8 anahtarı,
+   Issuer ID, Key ID). *Play Store* uygulaması ekle (paket adı: `online.kiracim.app`,
    hizmet hesabı JSON'u).
 3. **Products** → mağazalardaki dört ürünü içe aktar.
 4. **Entitlements** → `pro` oluştur, dört ürünü bağla.

@@ -15,7 +15,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>online.evim.app</string>
+			<string>online.kiracim.app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>evim</string>

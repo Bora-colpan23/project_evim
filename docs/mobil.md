@@ -64,7 +64,7 @@ yeniden açmak gerekmez.
 
 ## 2. Uygulama kimliği
 
-Uygulama kimliği `online.evim.app` (alan adının tersi). Mağazaya **ilk
+Uygulama kimliği `online.kiracim.app` (alan adının tersi). Mağazaya **ilk
 yüklemeden sonra değiştirilemez**; başka bir kimlik gerekirse ilk yüklemeden
 önce şu yerlerde değiştirilir:
 
@@ -76,23 +76,23 @@ yüklemeden sonra değiştirilemez**; başka bir kimlik gerekirse ilk yüklemede
 
 ## 3. Bağlantıların uygulamayı açması
 
-Davet ve e-posta bağlantıları `https://evim.online/…` biçiminde üretilir ve
+Davet ve e-posta bağlantıları `https://kiracim.online/…` biçiminde üretilir ve
 telefonda doğrudan uygulamayı açar. Alan adı koda işlendi
 (`config.js` → `publicUrl`, `android/gradle.properties` → `evimHost`,
 `ios/App/App/App.entitlements`). Senin yapacakların:
 
-1. Sitenin `evim.online` adresinde yayında olması
-   ([kurulum.md → 7](kurulum.md#7-github-pages-ve-evimonline)).
+1. Sitenin `kiracim.online` adresinde yayında olması
+   ([kurulum.md → 7](kurulum.md#7-github-pages-ve-kiracimonline)).
 2. GitHub → Settings → Secrets and variables → Actions → **Variables**:
    - `APPLE_TEAM_ID` — developer.apple.com → Membership → Team ID
    - `ANDROID_SHA256` — Play Console → Test and release → App integrity →
      *App signing key certificate* → SHA-256
    Bunlar girilince site doğrulama dosyalarını (`.well-known/…`) kendisi yayınlar.
 3. Supabase → Authentication → URL Configuration:
-   - **Site URL**: `https://evim.online/`
-   - **Redirect URLs**: `https://evim.online/auth`, `https://evim.online/` ve `evim://auth`
+   - **Site URL**: `https://kiracim.online/`
+   - **Redirect URLs**: `https://kiracim.online/auth`, `https://kiracim.online/` ve `evim://auth`
 4. Doğrulama: yayından sonra
-   `https://app-site-association.cdn-apple.com/a/v1/evim.online` adresi
+   `https://app-site-association.cdn-apple.com/a/v1/kiracim.online` adresi
    Apple'ın dosyayı gördüğünü, Play Console → *Deep links* sayfası Android'in
    doğruladığını gösterir.
 
@@ -106,7 +106,7 @@ telefonda doğrudan uygulamayı açar. Alan adı koda işlendi
 
 ```bash
 supabase secrets set APNS_KEY="$(cat AuthKey_XXXXXXXXXX.p8)"
-supabase secrets set APNS_KEY_ID=XXXXXXXXXX APNS_TEAM_ID=YYYYYYYYYY APNS_BUNDLE_ID=online.evim.app
+supabase secrets set APNS_KEY_ID=XXXXXXXXXX APNS_TEAM_ID=YYYYYYYYYY APNS_BUNDLE_ID=online.kiracim.app
 # Xcode'dan doğrudan kurulan geliştirme sürümüyle denerken:
 supabase secrets set APNS_SANDBOX=1
 ```
@@ -116,7 +116,7 @@ Xcode'da *Push Notifications* yeteneği `App.entitlements` ile zaten açık.
 ### Android (Firebase Cloud Messaging)
 
 1. console.firebase.google.com → proje oluştur → **Android uygulaması ekle**
-   (paket adı `online.evim.app`) → `google-services.json` dosyasını
+   (paket adı `online.kiracim.app`) → `google-services.json` dosyasını
    `android/app/` klasörüne koy.
 2. Firebase → Project settings → **Service accounts** → *Generate new
    private key* (JSON).
@@ -162,7 +162,7 @@ EVIM_KEYSTORE=/yol/evim-upload.jks EVIM_KEYSTORE_PASSWORD=… EVIM_KEY_ALIAS=evi
 
 ### App Store
 
-1. App Store Connect → **Apps → "+"** → Bundle ID `online.evim.app`.
+1. App Store Connect → **Apps → "+"** → Bundle ID `online.kiracim.app`.
 2. Xcode → üst menü **Product → Archive** → *Distribute App* → *App Store
    Connect*. Sürüm: App hedefi → General → *Version* ve *Build*.
 3. Önce **TestFlight** ile kendin ve birkaç kişiyle dene, sonra incelemeye

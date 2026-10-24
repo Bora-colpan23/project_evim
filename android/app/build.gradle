@@ -1,16 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "online.evim.app"
+    namespace = "online.kiracim.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "online.evim.app"
+        applicationId "online.kiracim.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Sürüm: CI'da -PevimVersionCode=… -PevimVersionName=… ile verilir.
         versionCode((project.findProperty('evimVersionCode') ?: '1') as Integer)
         versionName((project.findProperty('evimVersionName') ?: '1.0.0') as String)
-        manifestPlaceholders = [appLinkHost: (project.findProperty('evimHost') ?: 'evim.online')]
+        manifestPlaceholders = [appLinkHost: (project.findProperty('evimHost') ?: 'kiracim.online')]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -14,8 +14,8 @@ test.afterEach(() => { expect(errors).toEqual([]); });
 async function asNative(page, cfg = {}, live = false){
   await page.addInitScript(({ cfg, live }) => {
     window.__nativeCfg = cfg;
-    if (live) window.EVIM_CONFIG = { supabaseUrl:'https://sahte.supabase.co', supabaseAnonKey:'anon', supabaseJs: location.origin + '/tests/fake-supabase.js', publicUrl:'https://evim.online/',
-      billing:{ revenuecatIosKey:'appl_x', revenuecatAndroidKey:'goog_x', plans:[{ id:'monthly', package:'$rc_monthly', price:'' }, { id:'annual', package:'$rc_annual', price:'' }], androidPackage:'online.evim.app' } };
+    if (live) window.EVIM_CONFIG = { supabaseUrl:'https://sahte.supabase.co', supabaseAnonKey:'anon', supabaseJs: location.origin + '/tests/fake-supabase.js', publicUrl:'https://kiracim.online/',
+      billing:{ revenuecatIosKey:'appl_x', revenuecatAndroidKey:'goog_x', plans:[{ id:'monthly', package:'$rc_monthly', price:'' }, { id:'annual', package:'$rc_annual', price:'' }], androidPackage:'online.kiracim.app' } };
   }, { cfg, live });
   await page.addInitScript(FAKE);
 }
@@ -48,16 +48,16 @@ test('Android geri tuşu: önce alt sayfa, sonra geçmiş; kökte uygulama küç
 test('uygulamayı açan bağlantılar doğru ekrana gider', async ({ page }) => {
   await asNative(page);
   await open(page, '#/mulk-sahibi');
-  await page.evaluate(() => window.__native.fire('App:appUrlOpen', { url:'https://evim.online/#/mulk-sahibi/mulk/bagdat/odeme' }));
+  await page.evaluate(() => window.__native.fire('App:appUrlOpen', { url:'https://kiracim.online/#/mulk-sahibi/mulk/bagdat/odeme' }));
   await expect(page).toHaveURL(/#\/mulk-sahibi\/mulk\/bagdat\/odeme$/);
 
   const parsed = await page.evaluate(async () => {
     const { parseOpenUrl } = await import('./assets/js/native.js');
     return [
-      parseOpenUrl('https://evim.online/katil/ABC123'),
+      parseOpenUrl('https://kiracim.online/katil/ABC123'),
       parseOpenUrl('evim://katil/XYZ789'),
       parseOpenUrl('evim://auth?code=kod-1'),
-      parseOpenUrl('https://evim.online/auth?code=kod-2'),
+      parseOpenUrl('https://kiracim.online/auth?code=kod-2'),
       parseOpenUrl('bozuk adres')
     ];
   });
@@ -102,7 +102,7 @@ test('gerçek hesapta: oturum güvenli depoda, e-posta bağlantısı uygulamaya 
     const b = await import('./assets/js/backend.js');
     return { invite: b.inviteLink('ABC123'), redirect: b.redirect() };
   });
-  expect(links).toEqual({ invite:'https://evim.online/katil/ABC123', redirect:'https://evim.online/auth' });
+  expect(links).toEqual({ invite:'https://kiracim.online/katil/ABC123', redirect:'https://kiracim.online/auth' });
 
   // Kayıt ol, çık; şifre sıfırlama bağlantısı uygulamayı açınca yeni şifre ekranı gelir.
   await page.click('.rolecard:has-text("Kiracıyım")');
@@ -114,7 +114,7 @@ test('gerçek hesapta: oturum güvenli depoda, e-posta bağlantısı uygulamaya 
   await expect(page).toHaveURL(/#\/(kiraci|davet)/);
   await page.evaluate(() => window.__fakeClient.auth.signOut());
   await expect(page).toHaveURL(/#\/giris$/);
-  await page.evaluate(() => window.__native.fire('App:appUrlOpen', { url:'https://evim.online/auth?code=recovery-1' }));
+  await page.evaluate(() => window.__native.fire('App:appUrlOpen', { url:'https://kiracim.online/auth?code=recovery-1' }));
   await expect(page.locator('#screen h1')).toHaveText('Yeni şifreni belirle');
   expect(await page.evaluate(() => window.__fakeClient._calls.filter(c => c.exchange).map(c => c.exchange))).toEqual(['recovery-1']);
 });

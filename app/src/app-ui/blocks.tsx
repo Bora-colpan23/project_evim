@@ -1,10 +1,14 @@
 import { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleProp, View, ViewStyle, Image } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleProp, View, ViewStyle, Image } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { SvgXml } from 'react-native-svg';
 import { I, ic } from '../domain/icons';
 import { ST } from '../domain/logic';
 import { Chip, PressScale, Text } from '../ui/kit';
+import { t } from '../domain/i18n';
+import { LIVE } from '../domain/config';
+import { fileUrl, mediaSrc, reviewOf } from '../domain/backend';
+import { useStore } from './hooks';
 import { fonts, radius, useColors } from '../ui/theme';
 
 export function Icon({ name, size = 18, color }: { name: string; size?: number; color?: string }) {
@@ -209,14 +213,37 @@ export function Steps({ status, labels }: { status: number; labels: string[] }) 
   );
 }
 
+/** Yönetici denetimi durumu: yalnızca yükleyen kendi yüklemesi için görür (bkz. backend.reviewOf). */
+export function ReviewChip({ kind, pid, id }: { kind: 'payment' | 'document' | 'invoice'; pid: string; id: string }) {
+  useStore();
+  if (!LIVE) return null;
+  const r = reviewOf(kind, pid, id);
+  if (!r) return null;
+  if (r.status === 'approved') return <Chip tone="ok" label={t('Onaylandı')} />;
+  if (r.status === 'rejected') return <Chip tone="bad" label={t('Reddedildi') + (r.note ? ': ' + r.note : '')} />;
+  return <Chip tone="warn" label={t('İncelemede')} />;
+}
+
+/** Depodaki dosyayı (PDF dahil) imzalı adresle açar. */
+export function FileLink({ path, label }: { path?: string; label: string }) {
+  const c = useColors();
+  if (!path) return <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{label}</Text>;
+  return (
+    <PressScale onPress={async () => { const u = await fileUrl(path); if (u) Linking.openURL(u); }} accessibilityRole="link">
+      <Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyXBold, textDecorationLine: 'underline' }}>{label}</Text>
+    </PressScale>
+  );
+}
+
 export function Thumbs({ srcs, onRemove, size = 72 }: { srcs: string[]; onRemove?: (j: number) => void; size?: number }) {
   const c = useColors();
+  useStore();
   if (!srcs.length) return null;
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {srcs.map((s, j) => (
         <View key={j} style={{ width: size, height: size, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: c.surface2 }}>
-          <Image source={{ uri: s }} style={{ width: size, height: size }} resizeMode="cover" />
+          <Image source={{ uri: mediaSrc(s) }} style={{ width: size, height: size }} resizeMode="cover" />
           {onRemove && (
             <Pressable onPress={() => onRemove(j)} accessibilityLabel="Fotoğrafı sil" style={{ position: 'absolute', top: 2, right: 2, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' }}>
               <Text v="small" color="#fff" style={{ lineHeight: 18 }}>×</Text>

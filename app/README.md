@@ -35,15 +35,17 @@ Node/Apache `cleanUrls`; `npx serve dist` bunu kendisi yapar).
 | --- | --- | --- |
 | Ne zaman | `EXPO_PUBLIC_SUPABASE_URL` ve `EXPO_PUBLIC_SUPABASE_ANON_KEY` boşken | İkisi de doluyken |
 | Giriş / kayıt | Bu cihazda, şifre özetlenerek saklanır | Supabase Auth |
-| Veri | Bu cihazda, hesap başına ayrı; ilk açılışta örnek veriyle başlar | **Henüz cihazda**; sunucu eşitlemesi sonraki aşama |
+| Veri | Bu cihazda, hesap başına ayrı; ilk açılışta örnek veriyle başlar | Supabase'de; cihazlar arası, anlık eşitlenir (`domain/backend.js`) |
+| Yönetici paneli | Yok | `/admin` (yalnızca `admins` tablosundaki hesaplar) |
 
-`supabase/schema.sql` ve `docs/kurulum.md` mevcut Supabase kurulumunu anlatır.
+Gerçek hesap kurulumu ve yönetici ekleme: [`docs/kurulum.md`](../docs/kurulum.md) → *Uygulama (React Native) ve yönetici paneli*.
+Uçtan uca test: `npx playwright test tests/app-admin.spec.mjs` (sahte Supabase ile; gerçek sunucu kuralları `tests/admin.sql.spec.mjs` ve `tests/sql.spec.mjs` içinde gerçek Postgres'e karşı sınanır).
 
 ## Dizin
 
 ```
 app/
-  src/app/            Rotalar (expo-router): site, giriş, /uygulama/*
+  src/app/            Rotalar (expo-router): site, giriş, /katil, /uygulama/*, /admin
   src/site/           Tanıtım sayfası ve içeriği (özellikler, fiyatlar)
   src/auth/           Oturum (yerel ya da Supabase), giriş ekranı iskeleti
   src/ui/             Tasarım sistemi: renk/yazı tokenları, düğme, alan, chip
@@ -57,7 +59,8 @@ uygulamayla aynı modüllerdir (`tax.js`, `logic.js`).
 
 ## Yapılmayanlar (bu aşamada)
 
-- Supabase ile veri eşitlemesi, davet kodu ve anlık bildirim (`backend.js` taşınmadı)
+- Gerçek Supabase projesine karşı deneme (bu ortamdan erişilemedi; istemci sahte sunucuyla, kurallar PGlite ile sınandı)
+- Telefona anlık bildirim (push) ve şifre sıfırlama bağlantısının yeni şifre ekranı
 - App Store / Google Play satın alma (RevenueCat); abonelik ekranı durumu gösterir
 - Biyometrik kilit, rehberli tur, PWA kurulum ipucu
 - iOS/Android derlemeleri yalnızca JS paketi olarak doğrulandı (`expo export`);

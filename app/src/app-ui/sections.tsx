@@ -15,7 +15,7 @@ import { tl, fmt, fmtFull, monthYear, parse, t0, iso, between, daysTo, tm, dayLa
 import { Button, Chip, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import {
-  Avatar, Bar, Big, Card, Empty, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, List, Mid, Muted, Note, Row, Seg, Stack, Steps, StatusChip, Thumbs, initials, toneOf, typeIcon
+  Avatar, Bar, Big, Card, Empty, FileLink, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, List, Mid, Muted, Note, ReviewChip, Row, Seg, Stack, Steps, StatusChip, Thumbs, initials, toneOf, typeIcon
 } from './blocks';
 import { Toggle } from './forms';
 import { MonthWindows } from '../ui/Facade';
@@ -296,7 +296,8 @@ export function SecDocs({ p }: { p: any }) {
               return (
                 <Row key={d.id} between style={{ paddingVertical: 4 }}>
                   <View style={{ flex: 1 }}>
-                    <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{d.name}</Text>
+                    <FileLink path={d.path} label={d.name} />
+                    <ReviewChip kind="document" pid={p.id} id={d.id} />
                     <Muted>{t('Yüklendi')} {fmtFull(parse(d.at))}{d.until ? ' · ' + (d.cat === 'Tahliye taahhütnamesi' ? t('tahliye') : t('bitiş')) + ' ' + fmtFull(parse(d.until)) : ''}</Muted>
                   </View>
                   {soon ? <Chip tone="warn" label={t('{n} gün', { n: daysTo(d.until) })} /> : null}

@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 
-export type Picked = { name: string; dataUrl: string | null; isImage: boolean };
+export type Picked = { name: string; dataUrl: string | null; isImage: boolean; uri?: string; mime?: string; size?: number };
 
 async function shrink(uri: string, width = 720): Promise<string | null> {
   try {
@@ -44,7 +44,7 @@ export async function pickDocument(): Promise<Picked | null> {
   if (r.canceled || !r.assets?.length) return null;
   const a = r.assets[0];
   const isImage = (a.mimeType || '').startsWith('image/');
-  return { name: a.name, dataUrl: isImage ? await shrink(a.uri) : null, isImage };
+  return { name: a.name, dataUrl: isImage ? await shrink(a.uri) : null, isImage, uri: a.uri, mime: a.mimeType || undefined, size: a.size || undefined };
 }
 
 /** JSON içe aktarma için metin dosyası. */

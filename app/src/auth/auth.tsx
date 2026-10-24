@@ -7,30 +7,19 @@ import { LIVE, CONFIG } from '../domain/config';
 import { closeLocal, openLocal, ui } from '../domain/state';
 import { t } from '../domain/i18n';
 import { account } from '../domain/billing';
+import * as backend from '../domain/backend';
 
 export type Role = 'tenant' | 'landlord';
-export type User = { id: string; email: string; name: string; role: Role; createdAt?: number };
+export type User = { id: string; email: string; name: string; role: Role; createdAt?: number; admin?: boolean };
 
 const ACCOUNTS = 'kiracim-hesaplar';
 const SESSION = 'kiracim-oturum';
+const INVITE = 'kiracim-davet';
 
 type Account = User & { hash: string; salt: string; createdAt?: number };
 
 const readAccounts = (): Account[] => { try { return JSON.parse(storage.getItem(ACCOUNTS) || '[]'); } catch { return []; } };
 const hashPw = (pw: string, salt: string) => Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, salt + ':' + pw);
-
-let sb: any = null;
-async function supabase() {
-  if (sb) return sb;
-  const [{ createClient }, AsyncStorage] = await Promise.all([
-    import('@supabase/supabase-js'),
-    import('@react-native-async-storage/async-storage').then((m) => m.default)
-  ]);
-  sb = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
-    auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }
-  });
-  return sb;
-}
 
 type Ctx = {
   user: User | null; ready: boolean; live: boolean;
@@ -39,6 +28,8 @@ type Ctx = {
   reset(email: string): Promise<string | null>;
   signOut(): Promise<void>;
   deleteAccount(): Promise<void>;
+  /** Davet koduyla mülke bağlan (gerçek hesap, kiracı). */
+  join(code: string): Promise<string | null>;
 };
 const AuthCtx = createContext<Ctx>(null as unknown as Ctx);
 export const useAuth = () => useContext(AuthCtx);
@@ -50,6 +41,25 @@ function enter(u: User) {
   openLocal('kiracim-veri-' + u.id, u.role);
 }
 
+/** Bekleyen davet kodu (/katil bağlantısından gelir); giriş sonrası kabul edilir. */
+export const keepInvite = (code: string) => { try { storage.setItem(INVITE, code.trim().toUpperCase()); } catch {} };
+
+/** Gerçek hesap: sunucudan profil ve veriyi yükler; yönetici hesabı ev verisi yüklemez. */
+async function enterLive(au: { id: string; email?: string }): Promise<User> {
+  const res: any = await backend.openSession({ id: au.id, email: au.email });
+  const p = backend.live.profile || {};
+  const u: User = { id: au.id, email: au.email || '', name: p.name || '', role: (p.role as Role) || 'tenant', admin: !!res.admin };
+  if (!u.admin) {
+    ui.role = u.role;
+    const code = storage.getItem(INVITE);
+    if (code && u.role === 'tenant') {
+      try { await backend.acceptInvite(code); } catch {}
+      storage.removeItem(INVITE);
+    }
+  }
+  return u;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
@@ -59,14 +69,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await hydrate();
         if (LIVE) {
-          const c = await supabase();
+          const c = await backend.client();
           const { data } = await c.auth.getSession();
           const s = data.session;
-          if (s) {
-            const m = s.user.user_metadata || {};
-            const u = { id: s.user.id, email: s.user.email || '', name: m.name || '', role: (m.role as Role) || 'tenant' };
-            enter(u); setUser(u);
-          }
+          if (s) setUser(await enterLive(s.user));
         } else {
           const id = storage.getItem(SESSION);
           const a = id && readAccounts().find((x) => x.id === id);
@@ -82,12 +88,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!email || !password) return t('E-posta ve şifreni gir.');
     try {
       if (LIVE) {
-        const c = await supabase();
+        const c = await backend.client();
         const { data, error } = await c.auth.signInWithPassword({ email, password });
-        if (error) return t('E-posta ya da şifre yanlış.');
-        const m = data.user.user_metadata || {};
-        const u = { id: data.user.id, email, name: m.name || '', role: (m.role as Role) || 'tenant' };
-        enter(u); setUser(u); return null;
+        if (error) return backend.humanError(error);
+        setUser(await enterLive(data.user)); return null;
       }
       const a = readAccounts().find((x) => x.email === email);
       if (!a || a.hash !== (await hashPw(password, a.salt))) return t('E-posta ya da şifre yanlış.');
@@ -102,12 +106,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!name || !email || password.length < 8) return t('Adını, e-postanı ve en az 8 karakterli bir şifre gir.');
     try {
       if (LIVE) {
-        const c = await supabase();
+        const c = await backend.client();
         const { data, error } = await c.auth.signUp({ email, password, options: { data: { name, role, lang: 'tr' } } });
-        if (error) return t('Hesap oluşturulamadı: {m}', { m: error.message });
+        if (error) return t('Hesap oluşturulamadı: {m}', { m: backend.humanError(error) });
         if (!data.session) return 'CONFIRM';
-        const u = { id: data.user!.id, email, name, role };
-        enter(u); setUser(u); return null;
+        setUser(await enterLive(data.user!)); return null;
       }
       const list = readAccounts();
       if (list.some((x) => x.email === email)) return t('Bu e-posta ile bir hesap zaten var.');
@@ -127,14 +130,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!email) return t('E-posta adresini yaz.');
     if (!LIVE) return t('Yerel hesap modunda şifre sıfırlanamaz. Sunucu kurulunca e-posta ile sıfırlanır.');
     try {
-      const c = await supabase();
+      const c = await backend.client();
       const { error } = await c.auth.resetPasswordForEmail(email, { redirectTo: CONFIG.publicUrl });
       return error ? t('Bağlantı gönderilemedi.') : null;
     } catch { return t('Bağlantı kurulamadı. Biraz sonra yeniden dene.'); }
   }, []);
 
   const signOut = useCallback(async () => {
-    try { if (LIVE) await (await supabase()).auth.signOut(); } catch {}
+    try { if (LIVE) await backend.closeSession(); } catch {}
     storage.removeItem(SESSION);
     closeLocal(); ui.role = 'tenant'; setUser(null);
   }, []);
@@ -142,6 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /** Hesabı ve bu cihazdaki verisini siler (mağaza kuralı: uygulama içinden hesap silme). */
   const deleteAccount = useCallback(async () => {
     const id = user?.id;
+    if (LIVE) { try { await backend.deleteAccount(); } catch {} storage.removeItem(SESSION); closeLocal(); ui.role = 'tenant'; setUser(null); return; }
     if (id) {
       storage.setItem(ACCOUNTS, JSON.stringify(readAccounts().filter((x) => x.id !== id)));
       storage.removeItem('kiracim-veri-' + id);
@@ -149,6 +153,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut();
   }, [user, signOut]);
 
-  const value = useMemo(() => ({ user, ready, live: LIVE, signIn, signUp, reset, signOut, deleteAccount }), [user, ready, signIn, signUp, reset, signOut, deleteAccount]);
+  const join = useCallback(async (code: string) => {
+    code = code.trim().toUpperCase();
+    if (!code) return t('Davet kodunu gir.');
+    try { await backend.acceptInvite(code); storage.removeItem(INVITE); return null; } catch (e) { return backend.humanError(e); }
+  }, []);
+
+  const value = useMemo(() => ({ user, ready, live: LIVE, signIn, signUp, reset, signOut, deleteAccount, join }), [user, ready, signIn, signUp, reset, signOut, deleteAccount, join]);
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }

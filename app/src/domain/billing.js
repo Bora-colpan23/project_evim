@@ -6,8 +6,9 @@
    sürümde web, abonelik durumunu gösterir ve telefondan abone olmayı anlatır. */
 
 import { t } from './i18n.js';
-import { CONFIG } from './config.js';
+import { CONFIG, LIVE } from './config.js';
 import { ui } from './state.js';
+import { live } from './backend.js';
 
 const DAY = 86400000;
 export const TRIAL_DAYS = 14;
@@ -18,6 +19,7 @@ export const PLAN_LABEL = { monthly: () => t('Aylık'), annual: () => t('Yıllı
 export const account = { since: Date.now(), subscribed: null };
 
 export function access(){
+  if (LIVE) return live.access || { access:true, pending:true };
   const d = ui.demoBilling;
   if (d && d.state === 'subscribed')
     return { access:true, subscribed:true, inTrial:false, store:'demo', willRenew:true, productId:d.plan,

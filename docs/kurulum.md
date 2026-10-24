@@ -171,13 +171,71 @@ Bundan sonra varsayılan dala her gönderimde site `https://kiracim.online/`
 adresinde güncellenir. Telefon uygulamasının bağlantıları da bu alan adıyla
 çalışır: [mobil.md](mobil.md#3-bağlantıların-uygulamayı-açması).
 
+## Uygulama (React Native) ve yönetici paneli
+
+`app/` klasöründeki uygulama aynı Supabase projesini kullanır. Derleme sırasında
+iki değişken verilir (`anon` anahtarı herkese açıktır; `service_role` anahtarını
+hiçbir yere yazma):
+
+```bash
+cd app
+EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxx.supabase.co \
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi... \
+npx expo export -p web
+```
+
+Değişkenler boşsa uygulama yerel hesap moduyla açılır (veri yalnızca o cihazda).
+
+### Yönetici (denetçi) hesabı
+
+1. `supabase/schema.sql` dosyasını yukarıdaki gibi yeniden çalıştır (tekrar
+   çalıştırılabilir; `admins` ve `reviews` tablolarını, denetim kurallarını ve
+   mevcut yüklemeler için "onaylı" kayıtları ekler).
+2. Uygulamadan normal bir hesap aç (kiracı olarak kayıt olman yeterli).
+3. **SQL Editor**'de kendi e-postanı yönetici yap:
+
+```sql
+insert into public.admins (user_id)
+select id from auth.users where email = 'senin@epostan.com';
+```
+
+4. Bu hesapla giriş yapınca `/admin` açılır; yönetici hesapları ev verisi yüklemez.
+   Yöneticiyi kaldırmak için `delete from public.admins where user_id = '…'`.
+
+### Yönetici panelinde ne var
+
+- **Denetim**: kiracı dekontları, her iki tarafın belgeleri ve mülk sahibinin
+  faturaları. Önizleme, **Onayla** ya da gerekçeyle **Reddet**.
+- **Ödemeler**: kim kime, hangi mülk ve ay için, ne kadar ödemiş; durum ve denetim durumu.
+- **Mülk sahipleri**: mülk sahibi → mülkler → kiracılar (bekleyen davetler dahil), abonelik durumu.
+- **Kullanıcılar**: tüm hesaplar (e-posta, rol, kayıt tarihi).
+
+### Yüklemeler onaylanana kadar karşı tarafa görünmez
+
+| Yükleyen | Onaydan önce kim görür | Reddedilince |
+| --- | --- | --- |
+| Kiracı dekontu | Yalnızca kiracı ve yönetici. Mülk sahibi göremez, bildirim de gitmez. | Ödeme "reddedildi"ye döner, gerekçe kiracıya gösterilir; kiracı yeniden yükler. |
+| Belge (iki taraf) | Yükleyen ve yönetici | Yükleyene bildirim ve gerekçe |
+| Mülk sahibi faturası | Mülk sahibi ve yönetici (dosya kiracıdan kilitli) | Mülk sahibine bildirim ve gerekçe |
+
+Onaylanınca karşı tarafa bildirim gider. Dosyanın kendisi depoda da kilitlidir
+(imzalı adres alınamaz). Sınırlar: faturanın tutar ve tarih bilgisi talep
+satırında durduğu için kiracı bunu görebilir, yalnızca dosya kilitlidir;
+mülk sahibi, yönetici onaylayana kadar kiracının ödemesini "henüz yapılmadı"
+gibi görür. Yönetici bu kuralları aşan bir işlem yapamaz; kararı yalnızca
+yönetici verebilir (`tests/admin.sql.spec.mjs`).
+
+---
+
 ## 8. Kontrol listesi
 
 - [ ] İki farklı tarayıcıda (ya da biri gizli pencerede) bir mülk sahibi, bir kiracı hesabı aç.
 - [ ] Mülk sahibi mülk ekler; açılan davet bağlantısını kiracıya gönderir.
 - [ ] Kiracı bağlantıyla kaydolur ve mülke bağlanır.
-- [ ] Kiracı dekont yükler; mülk sahibinin ekranında sayfa yenilenmeden görünür.
-- [ ] Mülk sahibi onaylar; kiracıya bildirim düşer.
+- [ ] Kiracı dekont yükler; **yönetici onaylayana kadar** mülk sahibi görmez, kiracı "İncelemede" etiketini görür.
+- [ ] Yönetici panelinde (`/admin`) dekontu onaylar; mülk sahibinin ekranında görünür ve bildirim düşer.
+- [ ] Yönetici bir dekontu gerekçeyle reddeder; kiracı gerekçeyi görür ve yeniden yükleyebilir.
+- [ ] Mülk sahibi ödemeyi onaylar; kiracıya bildirim düşer.
 - [ ] Telefondan ana ekrana ekle, uygulamayı kapatıp mesaj gönder: bildirim gelmeli.
 
 ---

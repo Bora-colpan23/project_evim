@@ -8,14 +8,15 @@ import {
 } from '../domain/state';
 import { P, period, statusOf, remaining, ST, reminders, rentAt, expectedAt, moveOutSummary, search, otherPerson } from '../domain/logic';
 import { t, LANGS, getLang } from '../domain/i18n';
-import { CONFIG } from '../domain/config';
+import { CONFIG, LIVE } from '../domain/config';
+import { inviteLink, mediaSrc } from '../domain/backend';
 import { act, submit } from '../domain/services';
 import { access, trialDaysLeft, planList, PLAN_LABEL } from '../domain/billing';
 import { toApp } from '../domain/nav';
 import { tl, fmtFull, monthYear, parse, iso, t0, ago } from '../domain/util';
 import { Button, Chip, Field, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useColors } from '../ui/theme';
-import { Card, H2, Icon, IconBtn, Items, KV, Label, LI, Muted, Note, Row, Seg, Stack, Thumbs, Empty } from './blocks';
+import { Card, H2, Icon, IconBtn, Items, KV, Label, LI, Muted, Note, Row, Seg, Stack, Thumbs, Empty, FileLink, ReviewChip } from './blocks';
 import { Actions, Area, Choice, DateField, FileField, NumField, Text2, Title, Toggle, useVals } from './forms';
 import { useAuth } from '../auth/auth';
 import { stopajLine, useGo } from './sections';
@@ -193,7 +194,7 @@ function QuotesSection({ p, r }: { p: any; r: any }) {
         </Row>
       )) : <Muted>{t('Henüz teklif yok. Ustalardan aldığın fiyatları ekleyip karşılaştırabilirsin.')}</Muted>}
       {r.invoice
-        ? <Note>{t('Fatura:')} {tl(r.invoice.amount)} · {r.invoice.name} · {fmtFull(parse(r.invoice.date))}{r.invoice.expenseId ? ' ' + t('· gider defterine işlendi') : ''}</Note>
+        ? <Stack gap={8}><Note>{t('Fatura:')} {tl(r.invoice.amount)} · {r.invoice.name} · {fmtFull(parse(r.invoice.date))}{r.invoice.expenseId ? ' ' + t('· gider defterine işlendi') : ''}</Note><FileLink path={r.invoice.path} label={t('Faturayı aç')} /><ReviewChip kind="invoice" pid={p.id} id={r.id} /></Stack>
         : landlord ? <Button kind="ghost" title={t('Fatura ekle')} onPress={() => open('fatura', { pid: p.id, id: r.id })} /> : null}
     </Card>
   );
@@ -284,7 +285,8 @@ function ReceiptSheet({ pid, k, close }: { pid?: string; k: string; close: () =>
   return (
     <Stack>
       <Title>{monthYear(k)} {t('dekontu')}</Title>
-      {rc.photo ? <Thumbs size={190} srcs={[rc.photo]} /> : <Card><Muted>{rc.receipt || t('Dekont yok')}</Muted></Card>}
+      <ReviewChip kind="payment" pid={p.id} id={k} />
+      {rc.photo && /\.pdf$/i.test(rc.photo) ? <FileLink path={rc.photo} label={rc.receipt || t('Dekontu aç')} /> : rc.photo ? <Thumbs size={190} srcs={[rc.photo]} /> : <Card><Muted>{rc.receipt || t('Dekont yok')}</Muted></Card>}
       <KV k={t('Tutar')} v={tl(rc.amount != null ? rc.amount : expectedAt(p, k))} />
       <KV k={t('Beklenen')} v={tl(expectedAt(p, k))} />
       {p.stopaj ? <Muted>{stopajLine(p, k)}</Muted> : null}
@@ -455,7 +457,7 @@ function InviteSheet({ pid, code }: { pid?: string; code?: string }) {
   const p = propOf(pid);
   const c = useColors();
   if (!code) return null;
-  const link = CONFIG.publicUrl + 'katil/' + code;
+  const link = LIVE ? inviteLink(code) : CONFIG.publicUrl + 'katil?kod=' + code;
   const text = t('Merhaba,') + ' ' + p.name + ' ' + t('için Kiracım’da ortak panelimize katılır mısın? Davet kodun:') + ' ' + code + ' — ' + link;
   return (
     <Stack>
@@ -467,7 +469,7 @@ function InviteSheet({ pid, code }: { pid?: string; code?: string }) {
         <Button kind="ghost" title={t('WhatsApp')} style={{ flex: 1 }} onPress={() => Linking.openURL('https://wa.me/?text=' + encodeURIComponent(text))} />
       </Row>
       <Button kind="ghost" block title={t('E-posta ile gönder')} onPress={() => Linking.openURL('mailto:?subject=' + encodeURIComponent(t('Kiracım daveti')) + '&body=' + encodeURIComponent(text))} />
-      <Note>{t('Demo modunda davet gerçek değildir; kod yalnızca akışı göstermek içindir.')}</Note>
+      {!LIVE && <Note>{t('Demo modunda davet gerçek değildir; kod yalnızca akışı göstermek içindir.')}</Note>}
     </Stack>
   );
 }

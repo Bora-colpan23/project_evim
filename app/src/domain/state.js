@@ -434,6 +434,7 @@ export const ui = {
   lastChatKey:null,
   tour:null,
   media:{},        // depo yolu → görüntülenebilir adres (imzalı bağlantı ya da data URL)
+  reviews:{},      // yükleme denetimi: 'payment:pid:ay' → { status, note } (yalnızca yükleyenin kendisi)
   authMsg:null,    // giriş ekranlarında gösterilecek durum mesajı
   role:'tenant'    // 'tenant' | 'landlord'
 };

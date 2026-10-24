@@ -10,6 +10,8 @@ import { estimate } from './tax.js';
 import { migrate } from './migrate.js';
 import { t, locale, setLang } from './i18n.js';
 import * as billing from './billing.js';
+import * as backend from './backend.js';
+import { LIVE } from './config.js';
 import { host } from './host.js';
 import { toApp } from './nav.js';
 import { iso, t0, parse, fmtFull, monthYear, tl, daysTo, uid, percent } from './util.js';
@@ -60,6 +62,14 @@ function resetMoveOutApprovals(p){
 }
 function openText(title, body){ ui.text = { title, body }; host.openSheet('metin'); }
 const fileImage = f => (f && f.dataUrl) || null;
+/** Dosyayı saklar: gerçek hesapta depoya yüklenir ('sb:yol'), yerelde küçültülmüş görsel döner. */
+const keep = (pid, f) => (LIVE ? backend.storeFile(pid, f) : Promise.resolve(fileImage(f)));
+async function keepAll(pid, files, max){
+  const out = [];
+  for (const f of (files || []).slice(0, max)){ const v = await keep(pid, f); if (v) out.push(v); }
+  return out;
+}
+const failed = (title, e) => notify({ title, body: backend.humanError(e), icon:'home' }, false);
 
 /* ---------------- eylemler ---------------- */
 
@@ -184,10 +194,10 @@ export const A = {
   },
   removeShot: d => { P(d.pid).inspect.rooms[Number(d.i)].shots.splice(Number(d.j), 1); save(); },
   setRoomNote: d => { P(d.pid).inspect.rooms[Number(d.i)].note = d.v; save(); },
-  addRoomPhotos: d => {
+  addRoomPhotos: async d => {
     const p = P(d.pid), room = p.inspect.rooms[Number(d.i)];
     room.shots = room.shots || [];
-    (d.files || []).slice(0, 6).forEach(f => { const v = fileImage(f); if (v) room.shots.push(v); });
+    (await keepAll(p.id, d.files, 6)).forEach(v => room.shots.push(v));
     p.inspect.tenantOk = false; p.inspect.landlordOk = false;
     if (!save()) notify({ title:t('Yer kalmadı'), body:t('Depolama doldu; fotoğraflar kaydedilemedi.'), icon:'cam' }, false);
   },
@@ -305,6 +315,13 @@ export const A = {
     const tn = p.tenants.find(x => x.id === d.id);
     if (!tn) return;
     if (!await ask({ title:tn.name+(' '+t('mülkten çıkarılsın mı?')), body:t('Bu kiracı artık mülkün ödemelerini, taleplerini ve yazışmalarını göremez. Geçmiş kayıtlar korunur.'), ok:t('Çıkar'), danger:true })) return;
+    if (LIVE){
+      try {
+        if (tn.pending) await backend.deleteInvite(p.id, tn.code);
+        else await backend.removeMember(p.id, tn.id);
+      } catch(e){ failed(t('İşlem yapılamadı'), e); }
+      return;
+    }
     p.tenants = p.tenants.filter(x => x.id !== d.id);
     sysMsg(p, tn.name+(' '+t('mülkten çıkarıldı')));
     save();
@@ -359,9 +376,9 @@ export const A = {
     resetMoveOutApprovals(p);
     save();
   },
-  addExitPhotos: d => {
+  addExitPhotos: async d => {
     const p = P(d.pid), room = p.moveOut.rooms[Number(d.i)];
-    (d.files || []).slice(0, 6).forEach(f => { const v = fileImage(f); if (v) room.shots.push(v); });
+    (await keepAll(p.id, d.files, 6)).forEach(v => room.shots.push(v));
     resetMoveOutApprovals(p);
     if (!save()) notify({ title:t('Yer kalmadı'), body:t('Depolama doldu; fotoğraflar kaydedilemedi.'), icon:'cam' }, false);
   },
@@ -437,7 +454,7 @@ export async function submit(type, v){
   }
 
   if (type === 'newReq'){
-    const shots = files.slice(0, 4).map(fileImage).filter(Boolean);
+    const shots = await keepAll(p.id, files, 4);
     const r = {
       id:uid('r'), cat:fd.get('cat'), title:String(fd.get('title') || '').trim(),
       desc:String(fd.get('desc') || '').trim(), urgency:fd.get('urgency'),
@@ -470,7 +487,7 @@ export async function submit(type, v){
       receipt: file.name,
       note: String(fd.get('note') || '').trim() || undefined
     };
-    const stored = fileImage(file);
+    const stored = await keep(p.id, file);
     if (stored) rec.photo = stored;
     p.pay[key] = rec;
     sysMsg(p, monthYear(key)+(' '+t('kirası için dekont yüklendi'))+(rec.status === 'partial' ? (' '+t('(kısmi:')+' ')+tl(total)+')' : ''));
@@ -479,7 +496,7 @@ export async function submit(type, v){
       title: rec.status === 'partial' ? t('Kısmi ödeme kaydedildi') : t('Dekont yüklendi'),
       body: rec.status === 'partial'
         ? tl(due - total)+(' '+t('bakiye görünüyor; kalanı yükleyince onaya gider.'))
-        : t('Mülk sahibinin onayı bekleniyor. Onaylanınca haber vereceğiz.'),
+        : LIVE ? t('Kiracım ekibi dekontu inceliyor. Onaylanınca mülk sahibine iletilir.') : t('Mülk sahibinin onayı bekleniyor. Onaylanınca haber vereceğiz.'),
       icon:'card'
     });
     return true;
@@ -502,11 +519,12 @@ export async function submit(type, v){
     if (!file) return false;
     const until = fd.get('until') || undefined;
     const cat = fd.get('cat');
-    p.docs.push({ id:uid('d'), cat, name:file.name, at: iso(t0()), until });
+    const path = LIVE ? await backend.storeFile(p.id, file) : null;
+    p.docs.push(Object.assign({ id:uid('d'), cat, name:file.name, at: iso(t0()), until }, path ? { path } : {}));
     if (cat === 'DASK poliçesi' && until) p.dask = until;
     sysMsg(p, cat+(' '+t('yüklendi:')+' ')+file.name);
     save(); host.closeSheet();
-    notify({ title:t('Belge yüklendi'), body: cat + (until ? ' · '+fmtFull(parse(until))+(' '+t('için hatırlatma kuruldu')) : ''), icon:'doc' });
+    notify({ title:t('Belge yüklendi'), body: cat + (until ? ' · '+fmtFull(parse(until))+(' '+t('için hatırlatma kuruldu')) : '') + (LIVE ? ' · '+t('Kiracım ekibi inceleyecek.') : ''), icon:'doc' });
     return true;
   }
 
@@ -531,8 +549,9 @@ export async function submit(type, v){
     S.props[id] = {
       id, type:ptype, area:null, company:lessee.company, stopaj:lessee.stopaj, depositKind:'Nakit',
       name, addr:String(fd.get('addr') || '').trim(),
-      tenants: [{ id:uid('t'), name:'Davet bekleniyor', phone, email:'' }],
-      landlord: S.order.length ? P(S.order[0]).landlord : { name:t('Mülk sahibi'), phone:'' },
+      tenants: LIVE ? [] : [{ id:uid('t'), name:'Davet bekleniyor', phone, email:'' }],
+      landlord: LIVE ? { name: backend.live.profile?.name || t('Mülk sahibi'), phone: backend.live.profile?.phone || '' } : (S.order.length ? P(S.order[0]).landlord : { name:t('Mülk sahibi'), phone:'' }),
+      ownerId: LIVE ? backend.live.user?.id : undefined,
       rent, dueDay: Number(fd.get('due')) || 1,
       rentHistory:[{ from: iso(today), amount: rent, note:t('Sözleşme başlangıcı') }],
       expenses:[], value:null, moveOut:null,
@@ -547,6 +566,14 @@ export async function submit(type, v){
     ui.newPropType = null;
     save(); host.closeSheet();
     go('/mulk-sahibi/mulk/'+id);
+    if (LIVE){
+      // Ev sunucuya yazılınca kiracı için davet kodu üretilir.
+      try {
+        const code = await backend.createInvite(id, { name:'', email:'', phone });
+        host.openSheet('davet-paylas', { pid:id, code });
+      } catch(e){ failed(t('Davet oluşturulamadı'), e); }
+      return true;
+    }
     const num = phone.replace(/\D/g, '');
     notify({
       title:t('Mülk eklendi'), body:t('Kiracıya davet linkini gönder.'), icon:'home',
@@ -561,6 +588,14 @@ export async function submit(type, v){
   if (type === 'addTenant'){
     const name = String(fd.get('name') || '').trim();
     if (!name) return false;
+    if (LIVE){
+      try {
+        const code = await backend.createInvite(p.id, { name, email:String(fd.get('email') || '').trim(), phone:String(fd.get('phone') || '').trim() });
+        host.closeSheet();
+        setTimeout(() => host.openSheet('davet-paylas', { pid:p.id, code }), 60);
+      } catch(e){ failed(t('Davet oluşturulamadı'), e); }
+      return true;
+    }
     p.tenants.push({ id:uid('t'), name, email:String(fd.get('email') || '').trim(), phone:String(fd.get('phone') || '').trim() });
     sysMsg(p, name+(' '+t('mülke kiracı olarak eklendi')));
     save(); host.closeSheet();
@@ -594,7 +629,8 @@ export async function submit(type, v){
         date, note: r.title + (r.cost === 'Paylaşımlı' ? (' '+t('(yarı pay)')) : ''), reqId:r.id
       });
     }
-    r.invoice = { amount, date, name: file ? file.name : 'fatura', expenseId };
+    const path = file && LIVE ? await backend.storeFile(p.id, file) : null;
+    r.invoice = Object.assign({ amount, date, name: file ? file.name : 'fatura', expenseId }, path ? { path } : {});
     logReq(r, (t('Fatura işlendi:')+' ')+tl(amount));
     sysMsg(p, (t('Talep faturası:')+' ')+r.title+' · '+tl(amount));
     save(); host.closeSheet();

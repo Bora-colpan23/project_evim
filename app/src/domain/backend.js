@@ -18,6 +18,7 @@ import { host } from './host.js';
 import { storage } from './storage.js';
 import { uid } from './util.js';
 
+/** @type {any} */
 export const live = {
   client: null,
   user: null,
@@ -49,6 +50,7 @@ function must(res){
 /* İstemci ve oturum                                                   */
 /* ------------------------------------------------------------------ */
 
+/** @returns {Promise<any>} */
 export async function client(){
   if (live.client) return live.client;
   if (CONFIG.supabaseUrl.startsWith('fake:')){

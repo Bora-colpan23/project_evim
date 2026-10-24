@@ -9,11 +9,11 @@ import { t, getLang, setLang } from '../domain/i18n';
 import { CONFIG } from '../domain/config';
 import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
-import { MonthStrip, WindowGrid } from '../ui/Facade';
+import { MonthStrip } from '../ui/Facade';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { useAuth } from '../auth/auth';
 import { useLangTick } from '../app-ui/hooks';
-import { Icon, Steps } from '../app-ui/blocks';
+import { Steps } from '../app-ui/blocks';
 import { features, more, planPoints, plans } from './content';
 
 const enter = (i: number) => FadeInDown.delay(60 + i * 80).springify().damping(22).stiffness(120);
@@ -288,62 +288,53 @@ function Features({ onLayout }: { onLayout: (y: number) => void }) {
 }
 
 
-/** Marka sistemi şeridi: ikon takımı, ok desenli yazı, etiketli dev sözcük ve iki telefon (kiracı / mülk sahibi). */
-function Phone({ children, tilt = 0 }: { children: any; tilt?: number }) {
-  const c = useColors();
-  return (
-    <View style={{ width: 230, borderRadius: 40, backgroundColor: c.surface, borderWidth: 6, borderColor: c.ink, padding: 12, gap: 10, transform: [{ rotate: tilt + 'deg' }], overflow: 'hidden' }}>
-      <View style={{ alignSelf: 'center', width: 70, height: 18, borderRadius: 9, backgroundColor: c.ink }} />
-      {children}
-    </View>
-  );
-}
-
-function System() {
+/** Nasıl çalışır: üç adım ve iki tarafın ne yaptığı, düz anlatım. */
+function How() {
   const c = useColors();
   const { desktop, phone } = useBreakpoint();
-  const icons = ['key', 'doc', 'calendar', 'card', 'safe', 'wrench', 'box', 'meter', 'bell', 'chat', 'landlord', 'check'];
-  const tag = (label: string, bg: string, fg: string, top: number, left: string, rot: number) => (
-    <View style={{ position: 'absolute', top, left: left as any, backgroundColor: bg, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, transform: [{ rotate: rot + 'deg' }] }}>
-      <RNText style={{ fontFamily: fonts.siteBold, fontSize: 16, color: fg }}>{label}</RNText>
-    </View>
-  );
+  const steps: [string, string, string, string][] = [
+    ['1', t('Hesap aç'), t('Kiracı hesabı ücretsizdir. Mülk sahibi hesabı 14 gün kartsız denenir.'), c.sky],
+    ['2', t('Mülkü ekle, kiracıyı davet et'), t('Mülk sahibi mülkü ekler ve davet bağlantısı ya da kodu kiracıya gönderir. Kiracı kayıt olunca mülke bağlanır.'), c.butter],
+    ['3', t('Birlikte takip edin'), t('Dekont, talep, belge ve tutanak tek kayıtta durur. Aynı kaydı iki taraf da kendi ekranında görür.'), c.sage]
+  ];
+  const lists: [string, string, string[]][] = [
+    [t('Kiracı için'), c.peach, [t('Kira ve ödeme durumunu görür, dekont yükler'), t('Arıza ve tadilat talebi açar, durumunu izler'), t('Mesajlaşır, belgelerine ve giriş tutanağına bakar'), t('Sözleşme yenileme teklifini kabul eder ya da görüşmeye çağırır')]],
+    [t('Mülk sahibi için'), c.rose, [t('Tüm mülklerini ve kiracılarını tek ekranda görür'), t('Dekontu onaylar, talepleri ilerletir, teklifleri karşılaştırır'), t('Gider defteri, net getiri ve vergi tahminine bakar'), t('Çıkışta kesintileri girer, depozito iadesini hesaplar')]]
+  ];
   return (
-    <Container style={{ paddingTop: phone ? 56 : 112, gap: 16 }}>
+    <Container style={{ paddingTop: phone ? 56 : 112, gap: phone ? 28 : 48 }}>
+      <View style={{ maxWidth: 760, gap: 12 }}>
+        <Text v="label" color={c.accentText}>{t('Nasıl çalışır')}</Text>
+        <D size={phone ? 36 : 68}>{t('Üç adımda başla.')}</D>
+      </View>
       <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
-        <View style={{ flex: 1, backgroundColor: c.butter, borderRadius: 36, padding: 26, minHeight: 300, justifyContent: 'center' }}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', rowGap: 22 }}>
-            {icons.map((n) => <View key={n} style={{ width: '25%', alignItems: 'center' }}><Icon name={n} size={34} color={c.accent} /></View>)}
+        {steps.map(([n, title, body, bg]) => (
+          <View key={n} style={{ flex: 1, backgroundColor: bg, borderRadius: 36, padding: 28, gap: 14, minHeight: 240 }}>
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
+              <D size={22}>{n}</D>
+            </View>
+            <D size={26}>{title}</D>
+            <Text v="body" style={{ fontSize: 16, lineHeight: 24 }}>{body}</Text>
           </View>
-        </View>
-        <View style={{ flex: 1.5, backgroundColor: c.hero, borderRadius: 32, padding: 26, minHeight: 300, justifyContent: 'center', gap: 14 }}>
-          <Text v="label" color={c.heroMuted}>{t('Cephe deseni')}</Text>
-          <WindowGrid onDark />
-          <Text v="small" color={c.heroMuted}>{t('Her pencere bir ay. Ödenen aylar yanar.')}</Text>
-        </View>
+        ))}
       </View>
       <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
-        <View style={{ flex: 1.2, backgroundColor: c.sky, borderRadius: 36, minHeight: 300, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', padding: 26 }}>
-          <Wordmark size={phone ? 64 : 104} />
-          {tag(t('Tek kayıt'), c.deepB, '#fff', 40, '8%', -4)}
-          {tag(t('İki taraf'), c.deepB, '#fff', 36, '62%', 3)}
-          {tag(t('Hatırlatma'), c.deepB, '#fff', 210, '34%', -2)}
-        </View>
-        <View style={{ flex: 1, backgroundColor: c.rose, borderRadius: 36, minHeight: 300, padding: 26, justifyContent: 'center' }}>
-          <D size={phone ? 26 : 34}>{t('Aynı kayıt, iki ekran. Kiracı kendi işini, mülk sahibi tüm portföyünü görür.')}</D>
-        </View>
+        {lists.map(([title, bg, items]) => (
+          <View key={title} style={{ flex: 1, backgroundColor: bg, borderRadius: 36, padding: 28, gap: 14 }}>
+            <D size={28}>{title}</D>
+            <View style={{ gap: 10 }}>
+              {items.map((x) => (
+                <View key={x} style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+                  <Text v="body" color={c.accentText} style={{ fontFamily: fonts.bodyXBold, lineHeight: 24 }}>•</Text>
+                  <Text v="body" style={{ flex: 1, fontSize: 16, lineHeight: 24 }}>{x}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
       </View>
-      <View style={{ backgroundColor: c.surface2, borderRadius: 40, paddingVertical: 34, paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 28, justifyContent: 'center', alignItems: 'flex-start', overflow: 'hidden' }}>
-        <Phone tilt={-2}>
-          <View style={{ backgroundColor: c.deepA, borderRadius: 24, padding: 16, gap: 4 }}><Text v="label" color="#E8B9A6">{t('Kiracı')}</Text><D size={32} color="#FFF3EA">₺32.500</D><Text v="small" color="#E8CFC2">{t('5 Kasım · 12 gün kaldı')}</Text></View>
-          <View style={{ backgroundColor: c.peach, borderRadius: 22, padding: 14, gap: 8 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Kombi basıncı düşüyor')}</Text><Steps status={2} labels={['', '', '', '']} /></View>
-          <View style={{ backgroundColor: c.sage, borderRadius: 22, padding: 14 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Dekont yükle')}</Text></View>
-        </Phone>
-        <Phone tilt={2}>
-          <View style={{ backgroundColor: c.deepA, borderRadius: 24, padding: 16, gap: 4 }}><Text v="label" color="#E8B9A6">{t('Mülk sahibi')}</Text><D size={32} color="#FFF3EA">%44</D><Text v="small" color="#E8CFC2">{t('beklenenin tahsil edilen kısmı')}</Text></View>
-          <View style={{ backgroundColor: c.butter, borderRadius: 22, padding: 14, gap: 4 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Net getiri')}</Text><D size={24}>₺1.628.350</D></View>
-          <View style={{ backgroundColor: c.sky, borderRadius: 22, padding: 14 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Vergi tahmini')}</Text></View>
-        </Phone>
+      <View style={{ backgroundColor: c.surface, borderRadius: 28, borderWidth: 1, borderColor: c.line, padding: 22 }}>
+        <Text v="body" style={{ fontSize: 16, lineHeight: 24 }}>{t('Yüklenen dekont, belge ve faturalar Kiracım ekibince kontrol edilir; onaylanınca karşı tarafa görünür. Reddedilirse yükleyen gerekçesiyle birlikte haber alır.')}</Text>
       </View>
     </Container>
   );
@@ -472,7 +463,7 @@ export default function Landing() {
       <Words />
       <Manifesto />
       <Features onLayout={(y) => (ys.current.ozellikler = y)} />
-      <System />
+      <How />
       <Pricing go={go} onLayout={(y) => (ys.current.fiyat = y)} />
       <Contact onLayout={(y) => (ys.current.iletisim = y)} />
       <Footer />

@@ -1,47 +1,53 @@
-/* kiracım: küçük harfli, kalın, geometrik. İmza detayı "Anahtar Noktası":
-   "i"nin noktası dolu daire değil, içi boş bir Kiremit anahtar halkasıdır; noktasız "ı" kapı gibi sade kalır.
-   animate: açılışta halka "i"den "ı"nın üstüne sıçrar ve yerine oturur (600 ms). */
-import { useEffect, useState } from 'react';
-import { Text as RNText, View } from 'react-native';
+/* kiracım logosu: ev + anahtar deliği simgesi, küçük harfli kalın wordmark ve "i"nin Kiremit halkası.
+   Katmanlar ayrı dosyalardır (assets/brand): ev, kelime, halka. Halka ayrı olduğu için açılışta
+   "i"den "ı"nın üstüne sıçrayıp yerine oturabilir (600 ms). */
+import { Image, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
-import { fonts, useColors } from './theme';
+import { useEffect } from 'react';
+import { useColors } from './theme';
 
-export function Wordmark({ size = 28, color, animate }: { size?: number; color?: string; animate?: boolean }) {
+const ART = {
+  ink: { house: require('../../assets/brand/house-ink.png'), word: require('../../assets/brand/word-ink.png'), ring: require('../../assets/brand/ring-ink.png') },
+  cream: { house: require('../../assets/brand/house-cream.png'), word: require('../../assets/brand/word-cream.png'), ring: require('../../assets/brand/ring-cream.png') }
+};
+/** Kaynak tuvalin ölçüleri (px): tüm katmanlar aynı tuvale oturur. */
+const W = 1703, H = 311;
+/** Kelimenin başladığı x (k harfinin sol kenarı) ve "i" ile "ı"nın merkezleri. */
+const WORD_X = 409, I_CX = 677, DOT_CX = 1359;
+
+export function Wordmark({ size = 28, color, animate, house = true, variant }: {
+  size?: number; color?: string; animate?: boolean; house?: boolean; variant?: 'ink' | 'cream';
+}) {
   const c = useColors();
-  const ink = color ?? c.ink;
-  const [pos, setPos] = useState<{ a?: { x: number; w: number }; b?: { x: number; w: number } }>({});
+  // Renk verilmişse koyu zemin varsayılır (krem logo); yoksa temaya göre.
+  const tone = variant ?? (color ? 'cream' : c.ink === '#121A3B' ? 'ink' : 'cream');
+  const h = size * 1.15;
+  const s = h / H;
+  const full = W * s;
+  const left = house ? 0 : -WORD_X * s;
+  const width = house ? full : (W - WORD_X) * s;
+  const art = ART[tone];
+
   const dx = useSharedValue(0);
   const dy = useSharedValue(0);
-  const ring = size * 0.2;
-  const style = { fontFamily: fonts.siteBold, fontSize: size, lineHeight: size * 1.1, letterSpacing: -size * 0.03, color: ink } as const;
-
   useEffect(() => {
-    if (!animate || !pos.a || !pos.b) return;
-    const d = pos.b.x + pos.b.w / 2 - (pos.a.x + pos.a.w / 2);
+    if (!animate) return;
+    const d = (DOT_CX - I_CX) * s;
     const ease = Easing.out(Easing.cubic);
     dx.value = withSequence(withTiming(d, { duration: 300, easing: ease }), withTiming(0, { duration: 300, easing: ease }));
     dy.value = withSequence(
-      withTiming(-size * 0.3, { duration: 150, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 150, easing: Easing.in(Easing.quad) }),
-      withTiming(-size * 0.3, { duration: 150, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 150, easing: Easing.in(Easing.quad) })
+      withTiming(-h * 0.22, { duration: 150, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 150, easing: Easing.in(Easing.quad) }),
+      withTiming(-h * 0.22, { duration: 150, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 150, easing: Easing.in(Easing.quad) })
     );
-  }, [animate, pos.a?.x, pos.b?.x]);
-
+  }, [animate, h]);
   const hop = useAnimatedStyle(() => ({ transform: [{ translateX: dx.value }, { translateY: dy.value }] }));
 
+  const layer = { position: 'absolute' as const, top: 0, left, width: full, height: h };
   return (
-    <View accessibilityRole="header" accessibilityLabel="kiracım" style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
-      <RNText style={style}>k</RNText>
-      <View onLayout={(e) => { const l = e.nativeEvent.layout; setPos((p) => ({ ...p, a: { x: l.x, w: l.width } })); }}>
-        <RNText style={style}>ı</RNText>
-        <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 0, right: 0, top: size * 0.08, alignItems: 'center' }, hop]}>
-          <View style={{ width: ring, height: ring, borderRadius: ring / 2, borderWidth: Math.max(1.5, size * 0.065), borderColor: c.accent }} />
-        </Animated.View>
-      </View>
-      <RNText style={style}>rac</RNText>
-      <View onLayout={(e) => { const l = e.nativeEvent.layout; setPos((p) => ({ ...p, b: { x: l.x, w: l.width } })); }}>
-        <RNText style={style}>ı</RNText>
-      </View>
-      <RNText style={style}>m</RNText>
+    <View accessibilityRole="image" accessibilityLabel="kiracım" style={{ width, height: h, overflow: 'hidden' }}>
+      {house ? <Image source={art.house} style={layer} resizeMode="contain" /> : null}
+      <Image source={art.word} style={layer} resizeMode="contain" />
+      <Animated.View style={[layer, hop]} pointerEvents="none"><Image source={art.ring} style={{ width: full, height: h }} resizeMode="contain" /></Animated.View>
     </View>
   );
 }

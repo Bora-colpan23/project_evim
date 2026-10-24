@@ -18,6 +18,7 @@ import {
   Avatar, Bar, Big, Card, Empty, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, List, Mid, Muted, Note, Row, Seg, Stack, Steps, StatusChip, Thumbs, initials, toneOf, typeIcon
 } from './blocks';
 import { Toggle } from './forms';
+import { MonthWindows } from '../ui/Facade';
 import { pickImages, takePhoto } from './media';
 import { useSheet } from './overlays';
 import { Platform } from 'react-native';
@@ -66,6 +67,7 @@ export function RentHero({ p }: { p: any }) {
           <Label onDark>{monthYear(per.key)} {t('kirası')}</Label>
           <Big onDark>{tl(expectedAt(p, per.key))}</Big>
           {p.stopaj ? <Muted onDark>{stopajLine(p, per.key)}</Muted> : null}
+          <View style={{ marginVertical: 6 }}><MonthWindows p={p} onDark /></View>
           <Muted onDark>{line}</Muted>
         </View>
         <StatusChip st={per.status} />
@@ -249,7 +251,7 @@ export function SecMsg({ p }: { p: any }) {
             <View key={i} style={{ gap: 6 }}>
               {sep}
               <View style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? c.ink : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.line, borderRadius: 20, borderBottomRightRadius: mine ? 6 : 20, borderBottomLeftRadius: mine ? 20 : 6, paddingHorizontal: 14, paddingVertical: 10, gap: 2 }}>
-                {who ? <Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyXBold }}>{who}</Text> : null}
+                {who ? <Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyXBold }}>{who}</Text> : null}
                 <Text v="body" color={mine ? c.bg : c.ink} style={{ fontSize: 15, lineHeight: 21 }}>{m.text}</Text>
                 <Text v="small" color={mine ? c.heroMuted : c.muted} style={{ fontSize: 11, alignSelf: 'flex-end' }}>{tm(m.at)}</Text>
               </View>

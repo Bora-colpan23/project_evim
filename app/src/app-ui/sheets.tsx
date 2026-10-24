@@ -567,7 +567,7 @@ function SubscriptionSheet() {
       <Title>{t('Mülk sahibi aboneliği')}</Title>
       {status}
       <Stack gap={6}>
-        {[t('Sınırsız mülk: konut, ofis, mağaza, depo'), t('Dekont onayı, talepler, tutanak ve depozito iadesi'), t('Gider defteri, net getiri ve vergi tahmini'), t('Kiracıların için her zaman ücretsiz')].map((x) => <Row key={x} align="flex-start" gap={8}><Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyXBold }}>+</Text><Text v="small" style={{ flex: 1 }}>{x}</Text></Row>)}
+        {[t('Sınırsız mülk: konut, ofis, mağaza, depo'), t('Dekont onayı, talepler, tutanak ve depozito iadesi'), t('Gider defteri, net getiri ve vergi tahmini'), t('Kiracıların için her zaman ücretsiz')].map((x) => <Row key={x} align="flex-start" gap={8}><Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyXBold }}>+</Text><Text v="small" style={{ flex: 1 }}>{x}</Text></Row>)}
       </Stack>
       {a.subscribed ? null : (
         <>

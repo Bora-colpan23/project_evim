@@ -20,7 +20,7 @@ export default function Sifre() {
       <Field label={t('E-posta')} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" onSubmitEditing={submit} error={err} />
       {sent ? <Text v="small" color={c.okInk}>{t('Bağlantı gönderildi. E-postanı kontrol et.')}</Text> : null}
       <Button block title={t('Bağlantı gönder')} onPress={submit} loading={busy} />
-      <PressScale onPress={() => router.push('/giris')} accessibilityRole="link"><Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyBold }}>{t('Girişe dön')}</Text></PressScale>
+      <PressScale onPress={() => router.push('/giris')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyBold }}>{t('Girişe dön')}</Text></PressScale>
     </AuthShell>
   );
 }

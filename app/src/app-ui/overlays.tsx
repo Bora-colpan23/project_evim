@@ -40,6 +40,7 @@ export function OverlayProvider({ children, renderSheet }: { children: ReactNode
     host.go = (path: string) => router.push(path as any);
     host.openSheet = (name: string, params: any) => open(name, params);
     host.closeSheet = close;
+    host.haptic = () => { import('expo-haptics').then((H) => H.impactAsync(H.ImpactFeedbackStyle.Light)).catch(() => {}); };
     host.openUrl = (u: string) => { Linking.openURL(u).catch(() => {}); };
     host.saveFile = async (name: string, text: string, type: string) => {
       if (Platform.OS === 'web') {

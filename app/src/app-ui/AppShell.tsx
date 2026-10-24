@@ -8,8 +8,10 @@ import { toApp } from '../domain/nav';
 import { PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { Icon } from './blocks';
+import { Wordmark } from '../ui/Wordmark';
 import { useLangTick, useStore } from './hooks';
 import { OverlayProvider } from './overlays';
+import OpenSplash from './OpenSplash';
 import { renderSheet } from './sheets';
 import { useAuth } from '../auth/auth';
 
@@ -62,7 +64,7 @@ function TabBar({ list }: { list: Item[] }) {
               <Icon name={it.icon} size={22} color={on ? c.accent : c.muted} />
               {it.badge ? <View style={{ position: 'absolute', top: -5, right: -10, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}><Text v="small" color={c.accentInk} style={{ fontSize: 10, lineHeight: 13, fontFamily: fonts.bodyXBold }}>{it.badge}</Text></View> : null}
             </View>
-            <Text v="small" color={on ? c.accent : c.muted} style={{ fontSize: 11, lineHeight: 14, fontFamily: on ? fonts.bodyXBold : fonts.bodyBold }}>{it.label}</Text>
+            <Text v="small" color={on ? c.accentText : c.muted} style={{ fontSize: 11, lineHeight: 14, fontFamily: on ? fonts.bodyXBold : fonts.bodyBold }}>{it.label}</Text>
           </PressScale>
         );
       })}
@@ -76,18 +78,15 @@ function SideNav({ list }: { list: Item[] }) {
   const { user } = useAuth();
   const active = useActive();
   return (
-    <View style={{ width: 272, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 36, margin: 14, padding: 22, gap: 6 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-        <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 12, height: 12, borderWidth: 2.5, borderColor: c.accentInk, borderRadius: 3 }} /></View>
-        <Text v="h3" style={{ fontSize: 24 }}>kiracım</Text>
-      </View>
+    <View style={{ width: 272, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 32, margin: 14, padding: 22, gap: 6 }}>
+      <View style={{ marginBottom: 18 }}><Wordmark size={30} /></View>
       {list.map((it) => {
         const on = active(it.path);
         return (
           <PressScale key={it.path} onPress={() => router.push(it.path as any)} accessibilityRole="link" accessibilityState={{ selected: on }} scaleTo={0.98}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 48, borderRadius: radius.pill, backgroundColor: on ? c.accentSoft : 'transparent' }}>
             <Icon name={it.icon} size={19} color={on ? c.accent : c.muted} />
-            <Text v="small" color={on ? c.accent : c.ink} style={{ flex: 1, fontFamily: fonts.bodyXBold }}>{it.label}</Text>
+            <Text v="small" color={on ? c.accentText : c.ink} style={{ flex: 1, fontFamily: fonts.bodyXBold }}>{it.label}</Text>
             {it.badge ? <Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyXBold }}>{it.badge}</Text> : null}
           </PressScale>
         );
@@ -114,6 +113,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {!desktop && <TabBar list={tabs} />}
         </View>
       </View>
+      <OpenSplash />
     </OverlayProvider>
   );
 }

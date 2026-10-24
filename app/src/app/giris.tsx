@@ -23,8 +23,8 @@ export default function Giris() {
       <Field label={t('Şifre')} value={pw} onChangeText={setPw} secureTextEntry autoComplete="current-password" textContentType="password" onSubmitEditing={submit} error={err} />
       <Button block title={t('Giriş yap')} onPress={submit} loading={busy} />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <PressScale onPress={() => router.push('/sifre')} accessibilityRole="link"><Text v="small" color={c.accent} style={{ fontWeight: '700' }}>{t('Şifremi unuttum')}</Text></PressScale>
-        <PressScale onPress={() => router.push('/kayit')} accessibilityRole="link"><Text v="small" color={c.accent} style={{ fontWeight: '700' }}>{t('Hesabın yok mu? Kayıt ol')}</Text></PressScale>
+        <PressScale onPress={() => router.push('/sifre')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontWeight: '700' }}>{t('Şifremi unuttum')}</Text></PressScale>
+        <PressScale onPress={() => router.push('/kayit')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontWeight: '700' }}>{t('Hesabın yok mu? Kayıt ol')}</Text></PressScale>
       </View>
     </AuthShell>
   );

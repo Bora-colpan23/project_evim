@@ -2,6 +2,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { S, ui, PROP_TYPES } from '../domain/state';
 import { estimate, stopajRate } from '../domain/tax';
 import {
@@ -31,7 +32,7 @@ export function Page({ title, sub, back, children }: { title: string; sub?: stri
   useStore();
   const n = unreadCount();
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120, gap: 18, width: '100%', maxWidth: 760, alignSelf: 'center' }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120, width: '100%', maxWidth: 760, alignSelf: 'center' }} keyboardShouldPersistTaps="handled">
       <Row between align="flex-start">
         <Row align="flex-start" style={{ flex: 1 }}>
           {back ? <IconBtn name="back" label={t('Geri')} onPress={() => go(back)} /> : null}
@@ -46,7 +47,7 @@ export function Page({ title, sub, back, children }: { title: string; sub?: stri
           <IconBtn name="gear" label={t('Ayarlar')} onPress={() => open('ayarlar')} />
         </Row>
       </Row>
-      {children}
+      <Animated.View entering={FadeIn.duration(280)} style={{ gap: 16, marginTop: 18 }}>{children}</Animated.View>
     </ScrollView>
   );
 }

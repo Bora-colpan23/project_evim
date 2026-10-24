@@ -121,6 +121,7 @@ export const A = {
     delete rec.rejectReason;
     sysMsg(p, monthYear(d.key)+(' '+t('kirası onaylandı')));
     save(); host.closeSheet();
+    host.haptic();
     notify({ title:t('Ödeme onaylandı'), body:p.name+' · '+monthYear(d.key)+(' '+t('kirası. Kiracıya bildirildi.')), icon:'card' });
   },
   nudge: d => {

@@ -56,16 +56,16 @@ export default function Kayit() {
           {consent && <Text v="small" color={c.accentInk} style={{ fontFamily: fonts.bodyXBold, lineHeight: 18 }}>✓</Text>}
         </View>
         <Text v="small" muted style={{ flex: 1 }}>
-          <Text v="small" color={c.accent} onPress={() => Linking.openURL(CONFIG.legal.terms)}>{t('Kullanım Koşulları’nı')}</Text>
+          <Text v="small" color={c.accentText} onPress={() => Linking.openURL(CONFIG.legal.terms)}>{t('Kullanım Koşulları’nı')}</Text>
           {t(' kabul ediyorum; ')}
-          <Text v="small" color={c.accent} onPress={() => Linking.openURL(CONFIG.legal.privacy)}>{t('Gizlilik ve KVKK Aydınlatma Metni’ni')}</Text>
+          <Text v="small" color={c.accentText} onPress={() => Linking.openURL(CONFIG.legal.privacy)}>{t('Gizlilik ve KVKK Aydınlatma Metni’ni')}</Text>
           {t(' okudum.')}
         </Text>
       </PressScale>
       {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
       {info ? <Text v="small" color={c.okInk}>{info}</Text> : null}
       <Button block title={t('Hesap oluştur')} onPress={submit} loading={busy} />
-      <PressScale onPress={() => router.push('/giris')} accessibilityRole="link"><Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyBold }}>{t('Hesabın var mı? Giriş yap')}</Text></PressScale>
+      <PressScale onPress={() => router.push('/giris')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyBold }}>{t('Hesabın var mı? Giriş yap')}</Text></PressScale>
     </AuthShell>
   );
 }

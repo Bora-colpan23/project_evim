@@ -7,14 +7,17 @@ import { fonts, radius, useColors } from './theme';
 
 type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'small' | 'label' | 'num';
 const SCALE: Record<Variant, TextStyle> = {
-  display: { fontFamily: fonts.display, fontSize: 56, lineHeight: 58, letterSpacing: -2 },
-  h1: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, letterSpacing: -1.4 },
-  h2: { fontFamily: fonts.displayMid, fontSize: 28, lineHeight: 32, letterSpacing: -0.8 },
-  h3: { fontFamily: fonts.displayMid, fontSize: 19, lineHeight: 24, letterSpacing: -0.3 },
-  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 25 },
-  small: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20 },
-  label: { fontFamily: fonts.bodyXBold, fontSize: 12, lineHeight: 16, letterSpacing: 0.9, textTransform: 'uppercase' },
-  num: { fontFamily: fonts.display, fontSize: 40, lineHeight: 44, letterSpacing: -1.2 }
+  // Başlık: Bricolage ExtraBold, satır aralığı %95. Alt başlık/gövde: Hanken Grotesk.
+  display: { fontFamily: fonts.display, fontSize: 64, lineHeight: 61, letterSpacing: -2.2 },
+  h1: { fontFamily: fonts.display, fontSize: 44, lineHeight: 42, letterSpacing: -1.4 },
+  h2: { fontFamily: fonts.display, fontSize: 28, lineHeight: 28, letterSpacing: -0.7 },
+  h3: { fontFamily: fonts.displayMid, fontSize: 20, lineHeight: 26, letterSpacing: -0.2 },
+  body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 24 },
+  small: { fontFamily: fonts.body, fontSize: 14, lineHeight: 21 },
+  // Etiket ve rozet: Medium, 12 px, harf aralığı +%2
+  label: { fontFamily: fonts.bodyMedium, fontSize: 12, lineHeight: 16, letterSpacing: 0.24, textTransform: 'uppercase' },
+  // Rakam (kira tutarı): Bold, tabular
+  num: { fontFamily: fonts.bodyBold, fontSize: 56, lineHeight: 60, letterSpacing: -1.5, fontVariant: ['tabular-nums'] }
 };
 
 export function Text({ v = 'body', muted, color, style, children, ...rest }: {
@@ -58,9 +61,10 @@ export function Button({ title, onPress, kind = 'primary', block, disabled, load
   block?: boolean; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; icon?: ReactNode;
 }) {
   const c = useColors();
-  const bg = kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
-  const fg = kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
-  const border = kind === 'ghost' ? c.line : kind === 'onDark' ? '#5a554c' : 'transparent';
+  const off = !!(disabled || loading);
+  const bg = off && (kind === 'primary' || kind === 'dark') ? c.line6 : kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
+  const fg = off && (kind === 'primary' || kind === 'dark') ? c.muted : kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
+  const border = kind === 'ghost' ? c.ink : kind === 'onDark' ? 'rgba(251,244,234,0.45)' : 'transparent';
   return (
     <PressScale
       accessibilityRole="button"
@@ -69,15 +73,15 @@ export function Button({ title, onPress, kind = 'primary', block, disabled, load
       onPress={onPress}
       style={[
         {
-          minHeight: 48, paddingHorizontal: 22, borderRadius: radius.pill, backgroundColor: bg,
-          borderWidth: 1, borderColor: border, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-          alignSelf: block ? 'stretch' : 'flex-start', opacity: disabled ? 0.5 : 1
+          minHeight: 56, paddingHorizontal: 26, borderRadius: radius.pill, backgroundColor: bg,
+          borderWidth: 1.5, borderColor: border, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+          alignSelf: block ? 'stretch' : 'flex-start'
         },
         style
       ]}
     >
       {icon}
-      <RNText style={{ color: fg, fontFamily: fonts.bodyXBold, fontSize: 15 }}>{loading ? '…' : title}</RNText>
+      <RNText style={{ color: fg, fontFamily: fonts.bodyBold, fontSize: 16 }}>{loading ? '…' : title}</RNText>
     </PressScale>
   );
 }
@@ -96,7 +100,7 @@ export function Field({ label, error, hint, ...rest }: TextInputProps & { label:
         onBlur={(e) => { setFocus(false); rest.onBlur?.(e); }}
         style={[
           {
-            minHeight: 50, borderRadius: radius.md, paddingHorizontal: 16, color: c.ink, backgroundColor: c.surface,
+            minHeight: 52, borderRadius: radius.md, paddingHorizontal: 16, color: c.ink, backgroundColor: c.surface,
             borderWidth: 1.5, borderColor: error ? c.badInk : focus ? c.accent : c.line, fontFamily: fonts.body, fontSize: 16
           },
           // @ts-ignore web-only
@@ -110,18 +114,18 @@ export function Field({ label, error, hint, ...rest }: TextInputProps & { label:
 
 /** Sayfa genişliğini sınırlar; yan boşluk her ekranda en az 20. */
 export function Container({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ width: '100%', maxWidth: 1240, alignSelf: 'center', paddingHorizontal: 20 }, style]}>{children}</View>;
+  return <View style={[{ width: '100%', maxWidth: 1200, alignSelf: 'center', paddingHorizontal: 16 }, style]}>{children}</View>;
 }
 
 export function Chip({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'ok' | 'bad' | 'warn' | 'accent' }) {
   const c = useColors();
   const map = {
-    neutral: [c.surface2, c.ink], ok: [c.okBg, c.okInk], bad: [c.badBg, c.badInk], warn: [c.warnBg, c.warnInk], accent: [c.accentSoft, c.accent]
+    neutral: [c.surface2, c.ink], ok: [c.okBg, c.okInk], bad: [c.badBg, c.badInk], warn: [c.warnBg, c.warnInk], accent: [c.accentSoft, c.accentText]
   } as const;
   const [bg, fg] = map[tone];
   return (
     <View style={{ backgroundColor: bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, alignSelf: 'flex-start' }}>
-      <RNText style={{ color: fg, fontFamily: fonts.bodyXBold, fontSize: 12 }}>{label}</RNText>
+      <RNText style={{ color: fg, fontFamily: fonts.bodyMedium, fontSize: 12, letterSpacing: 0.24 }}>{label}</RNText>
     </View>
   );
 }

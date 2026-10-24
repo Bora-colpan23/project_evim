@@ -13,5 +13,7 @@ export const host = {
   closeSheet: () => {},
   /** Dışa aktarma: metin ve dosya */
   saveFile: () => {},
-  openUrl: () => {}
+  openUrl: () => {},
+  /** Hafif haptik titreşim (ödeme onayı). */
+  haptic: () => {}
 };

@@ -8,6 +8,8 @@ import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { t, getLang, setLang } from '../domain/i18n';
 import { CONFIG } from '../domain/config';
 import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
+import { Wordmark } from '../ui/Wordmark';
+import { MonthStrip, WindowGrid } from '../ui/Facade';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { useAuth } from '../auth/auth';
 import { useLangTick } from '../app-ui/hooks';
@@ -22,16 +24,9 @@ function D({ children, size, color, style }: { children: any; size: number; colo
   return <RNText style={[{ fontFamily: fonts.siteBold, fontSize: size, lineHeight: Math.round(size * 1.04), letterSpacing: -size * 0.035, color: color ?? c.ink }, style]}>{children}</RNText>;
 }
 
-function Logo({ onDark }: { onDark?: boolean }) {
+function Logo({ onDark, animate }: { onDark?: boolean; animate?: boolean }) {
   const c = useColors();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <View style={{ width: 32, height: 32, borderRadius: 11, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-        <View style={{ width: 13, height: 13, borderWidth: 2.5, borderColor: c.accentInk, borderRadius: 4 }} />
-      </View>
-      <RNText style={{ fontFamily: fonts.siteBold, fontSize: 24, letterSpacing: -0.8, color: onDark ? c.heroInk : c.ink }}>kiracım</RNText>
-    </View>
-  );
+  return <Wordmark size={28} color={onDark ? c.heroInk : undefined} animate={animate} />;
 }
 
 /** Yüzen hap biçimli gezinme: ekranın üstünde yapışık, yuvarlak ve beyaz. */
@@ -43,7 +38,7 @@ function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) 
     <View style={{ paddingTop: 14, paddingBottom: 6, backgroundColor: c.cream }}>
       <Container>
         <View style={{ minHeight: 64, borderRadius: radius.pill, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, paddingLeft: 22, paddingRight: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Logo />
+          <Logo animate />
           {!phone && (
             <View style={{ flexDirection: 'row', gap: 6 }}>
               {[['ozellikler', t('Özellikler')], ['fiyat', t('Fiyatlar')], ['iletisim', t('İletişim')]].map(([k, l]) => (
@@ -86,14 +81,30 @@ function Rings({ color, children }: { color: string; children: any }) {
   );
 }
 
+/** "Gün ışığı": Krem Duvar → Lavanta Gölge, 160°, yumuşak ve bulanık geçiş. */
+function Daylight() {
+  const c = useColors();
+  return (
+    <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 400 300" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="none">
+      <Defs>
+        <LinearGradient id="dl" x1="0.3" y1="0" x2="0.7" y2="1"><Stop offset="0" stopColor={c.cream} /><Stop offset="1" stopColor={c.lavender} /></LinearGradient>
+      </Defs>
+      <Rect width="400" height="300" fill="url(#dl)" />
+      <Path d="M-10 250 C 90 200, 200 290, 420 210 L 420 310 L -10 310 Z" fill={c.lavender} opacity={0.55} />
+      <Path d="M260 -10 C 300 60, 360 40, 420 90 L 420 -10 Z" fill={c.lemon} opacity={0.35} />
+    </Svg>
+  );
+}
+
 function RentCard() {
   const c = useColors();
   return (
-    <View style={{ backgroundColor: c.hero, borderRadius: 32, padding: 22, gap: 6, flex: 1, minWidth: 220 }}>
+    <View style={{ backgroundColor: c.hero, borderRadius: 24, padding: 22, gap: 10, flex: 1, minWidth: 240 }}>
       <Text v="label" color={c.heroMuted}>{t('Kasım kirası')}</Text>
-      <D size={46} color={c.heroInk}>₺32.500</D>
+      <Text v="num" color={c.heroInk}>₺32.500</Text>
+      <MonthStrip onDark kinds={['lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'mint', 'off']} />
       <Text v="small" color={c.heroMuted}>{t('5 Kasım · 12 gün kaldı')}</Text>
-      <View style={{ marginTop: 12 }}><Button title={t('Dekont yükle')} onPress={() => {}} /></View>
+      <View style={{ marginTop: 6 }}><Button title={t('Dekont yükle')} onPress={() => {}} /></View>
     </View>
   );
 }
@@ -101,34 +112,33 @@ function RentCard() {
 function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
   const c = useColors();
   const { desktop, phone } = useBreakpoint();
-  const size = phone ? 46 : desktop ? 108 : 78;
-  const pill = Math.round(size * 0.74);
+  const size = phone ? 46 : desktop ? 104 : 76;
+  const pill = Math.round(size * 0.7);
   return (
     <Container style={{ paddingTop: phone ? 10 : 18 }}>
-      <View style={{ backgroundColor: c.peach, borderRadius: phone ? 32 : 48, padding: phone ? 22 : 56, gap: phone ? 28 : 44, overflow: 'hidden' }}>
+      <View style={{ borderRadius: phone ? 32 : 40, padding: phone ? 22 : 56, gap: phone ? 28 : 44, overflow: 'hidden', backgroundColor: c.cream }}>
+        <Daylight />
         <View style={{ gap: 6 }}>
           <Animated.View entering={enter(0)} style={{ marginBottom: 14 }}><Chip tone="neutral" label={t('Kiracılar için ücretsiz')} /></Animated.View>
           <Animated.View entering={enter(1)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: size * 0.12 }}>
             <D size={size}>{t('Kira işi,')}</D>
             <Pill bg={c.surface} fg={c.ink} size={pill}>
-              <View style={{ width: pill * 0.36, height: pill * 0.36, borderRadius: pill, backgroundColor: c.accent }} />
-              <RNText style={{ fontFamily: fonts.site, fontSize: pill * 0.4, color: c.ink, letterSpacing: -0.5 }}>{t('Ödendi')}</RNText>
+              <View style={{ width: pill * 0.4, height: pill * 0.4, borderRadius: pill * 0.1, backgroundColor: c.lemon }} />
+              <RNText style={{ fontFamily: fonts.bodyBold, fontSize: pill * 0.4, color: c.ink }}>{t('Ödendi')}</RNText>
             </Pill>
           </Animated.View>
-          <Animated.View entering={enter(2)}><D size={size}>{t('ikiniz için')}</D></Animated.View>
-          <Animated.View entering={enter(3)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: size * 0.12 }}>
-            <D size={size}>{t('tek yerde.')}</D>
-          </Animated.View>
+          <Animated.View entering={enter(2)}><D size={size}>{t('ev kadar')}</D></Animated.View>
+          <Animated.View entering={enter(3)}><D size={size}>{t('rahat.')}</D></Animated.View>
         </View>
 
         <View style={{ flexDirection: desktop ? 'row' : 'column', gap: desktop ? 56 : 28, alignItems: desktop ? 'flex-end' : 'stretch', justifyContent: 'space-between' }}>
           <Animated.View entering={enter(4)} style={{ maxWidth: 520, gap: 22 }}>
             <Text v="body" style={{ fontSize: phone ? 17 : 20, lineHeight: phone ? 26 : 30 }}>
-              {t('Kiracı ve mülk sahibi aynı kayda iki taraftan bakar: ödemeler, talepler, belgeler, tutanak, depozito, giderler ve sözleşme yenileme tek akışta.')}
+              {t('Sözleşme, ödeme, depozito ve arıza yazışması tek uygulamada. Kiracı ve mülk sahibi aynı kayda iki taraftan bakar.')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
-              <Button kind="dark" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 56, paddingHorizontal: 30 }} />
-              <Button kind="ghost" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} style={{ minHeight: 56, paddingHorizontal: 30, backgroundColor: 'rgba(255,255,255,0.5)' }} />
+              <Button title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
+              <Button kind="ghost" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
             </View>
             <Text v="small" muted>{t('Mülk sahipleri 14 gün kartsız dener. Konut, ofis, mağaza ve depo.')}</Text>
           </Animated.View>
@@ -136,17 +146,36 @@ function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string)
           <Animated.View entering={FadeInUp.delay(380).springify().damping(20)} style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap', flex: desktop ? 1 : undefined, maxWidth: desktop ? 640 : undefined, justifyContent: desktop ? 'flex-end' : 'flex-start' }}>
             <RentCard />
             <View style={{ flex: 1, minWidth: 220, gap: 14 }}>
-              <View style={{ backgroundColor: c.surface, borderRadius: 28, padding: 18, gap: 10 }}>
-                <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Kombi basıncı düşüyor')}</Text>
+              <View style={{ backgroundColor: c.surface, borderRadius: 24, padding: 18, gap: 10, borderWidth: 1, borderColor: c.line }}>
+                <Text v="small" style={{ fontFamily: fonts.bodyBold }}>{t('Kombi basıncı düşüyor')}</Text>
                 <Steps status={2} labels={[t('Açıldı'), t('Görüldü'), t('İşlemde'), t('Çözüldü')]} />
               </View>
-              <View style={{ backgroundColor: c.butter, borderRadius: 28, padding: 18, gap: 4 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Sözleşme yenileme')}</Text><Chip label={t('52 gün')} tone="warn" /></View>
-                <Text v="small" color={c.ink}>{t('Artış, 12 aylık TÜFE ortalamasıyla sınırlı. İki taraf aynı hesabı görür.')}</Text>
+              <View style={{ backgroundColor: c.lemon, borderRadius: 24, padding: 18, gap: 4 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text v="small" color="#121A3B" style={{ fontFamily: fonts.bodyBold }}>{t('Sözleşme yenileme')}</Text><Chip label={t('52 gün')} tone="neutral" /></View>
+                <Text v="small" color="#121A3B">{t('Artış, 12 aylık TÜFE ortalamasıyla sınırlı. İki taraf aynı hesabı görür.')}</Text>
               </View>
             </View>
           </Animated.View>
         </View>
+      </View>
+    </Container>
+  );
+}
+
+/** Tasarım manifestosu: beş kısa cümle, dev yazı. */
+function Manifesto() {
+  const c = useColors();
+  const { phone } = useBreakpoint();
+  const lines = [t('Ev, bir adres değil bir duygudur.'), t('Kira, bir yük değil bir düzendir.'), t('Her ay bir pencere yanar.'), t('Net yaz, yumuşak davran.'), t('Sayı büyük, söz kısa.')];
+  return (
+    <Container style={{ paddingTop: phone ? 56 : 112 }}>
+      <View style={{ backgroundColor: c.lavender, borderRadius: phone ? 32 : 40, padding: phone ? 24 : 56, gap: phone ? 10 : 16 }}>
+        <Text v="label" color={c.ink}>{t('Kiracım böyle düşünür')}</Text>
+        {lines.map((l, i) => (
+          <Animated.View key={l} entering={FadeInDown.delay(i * 80).duration(280)}>
+            <D size={phone ? 26 : 56} color={i === 2 ? c.accentText : c.ink}>{l}</D>
+          </Animated.View>
+        ))}
       </View>
     </Container>
   );
@@ -208,7 +237,7 @@ function Features({ onLayout }: { onLayout: (y: number) => void }) {
     <View onLayout={(e) => onLayout(e.nativeEvent.layout.y)}>
       <Container style={{ paddingTop: phone ? 56 : 112, gap: phone ? 28 : 48 }}>
         <View style={{ maxWidth: 760, gap: 12 }}>
-          <Text v="label" color={c.accent}>{t('Özellikler')}</Text>
+          <Text v="label" color={c.accentText}>{t('Özellikler')}</Text>
           <D size={phone ? 36 : 68}>{t('Kiranın tüm işi, ödemeden çıkışa.')}</D>
         </View>
         <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
@@ -273,13 +302,12 @@ function Phone({ children, tilt = 0 }: { children: any; tilt?: number }) {
 function System() {
   const c = useColors();
   const { desktop, phone } = useBreakpoint();
-  const icons = ['home', 'card', 'wrench', 'chat', 'doc', 'chart', 'bell', 'phone', 'calendar', 'key', 'search', 'gear'];
+  const icons = ['key', 'doc', 'calendar', 'card', 'safe', 'wrench', 'box', 'meter', 'bell', 'chat', 'landlord', 'check'];
   const tag = (label: string, bg: string, fg: string, top: number, left: string, rot: number) => (
     <View style={{ position: 'absolute', top, left: left as any, backgroundColor: bg, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, transform: [{ rotate: rot + 'deg' }] }}>
       <RNText style={{ fontFamily: fonts.siteBold, fontSize: 16, color: fg }}>{label}</RNText>
     </View>
   );
-  const rowsText = ['KİRA → ÖDEME →', 'ONAY → KİRA →', 'ÖDEME → ONAY →'];
   return (
     <Container style={{ paddingTop: phone ? 56 : 112, gap: 16 }}>
       <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
@@ -288,13 +316,15 @@ function System() {
             {icons.map((n) => <View key={n} style={{ width: '25%', alignItems: 'center' }}><Icon name={n} size={34} color={c.accent} /></View>)}
           </View>
         </View>
-        <View style={{ flex: 1.5, backgroundColor: c.sage, borderRadius: 36, padding: 26, minHeight: 300, overflow: 'hidden', justifyContent: 'center' }}>
-          {rowsText.map((r, i) => <RNText key={i} numberOfLines={1} style={{ fontFamily: fonts.siteBold, fontSize: phone ? 40 : 64, lineHeight: phone ? 46 : 72, letterSpacing: -2, color: i === 1 ? c.accent : c.ink, marginLeft: i === 1 ? -30 : 0 }}>{r}</RNText>)}
+        <View style={{ flex: 1.5, backgroundColor: c.hero, borderRadius: 32, padding: 26, minHeight: 300, justifyContent: 'center', gap: 14 }}>
+          <Text v="label" color={c.heroMuted}>{t('Cephe deseni')}</Text>
+          <WindowGrid onDark />
+          <Text v="small" color={c.heroMuted}>{t('Her pencere bir ay. Ödenen aylar yanar.')}</Text>
         </View>
       </View>
       <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
         <View style={{ flex: 1.2, backgroundColor: c.sky, borderRadius: 36, minHeight: 300, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', padding: 26 }}>
-          <RNText style={{ fontFamily: fonts.siteBold, fontSize: phone ? 64 : 104, letterSpacing: -4, color: '#2A62C8' }}>kiracım</RNText>
+          <Wordmark size={phone ? 64 : 104} />
           {tag(t('Tek kayıt'), c.deepB, '#fff', 40, '8%', -4)}
           {tag(t('İki taraf'), c.deepB, '#fff', 36, '62%', 3)}
           {tag(t('Hatırlatma'), c.deepB, '#fff', 210, '34%', -2)}
@@ -326,7 +356,7 @@ function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: numb
     <View onLayout={(e) => onLayout(e.nativeEvent.layout.y)}>
       <Container style={{ paddingTop: phone ? 56 : 112, gap: phone ? 28 : 48 }}>
         <View style={{ maxWidth: 820, gap: 12 }}>
-          <Text v="label" color={c.accent}>{t('Fiyatlar')}</Text>
+          <Text v="label" color={c.accentText}>{t('Fiyatlar')}</Text>
           <D size={phone ? 36 : 68}>{t('Kiracı ücretsiz. Mülk sahibi aylık ya da yıllık.')}</D>
           <Text v="body" muted style={{ maxWidth: 620, fontSize: 17 }}>{t('Mülk sahibi hesapları 14 gün kartsız denenir. Süre bitince kayıtlar salt okunur olur; kiracının işleri hiç etkilenmez.')}</Text>
         </View>
@@ -440,6 +470,7 @@ export default function Landing() {
       <Nav go={go} scrollTo={scrollTo} />
       <Hero go={go} scrollTo={scrollTo} />
       <Words />
+      <Manifesto />
       <Features onLayout={(y) => (ys.current.ozellikler = y)} />
       <System />
       <Pricing go={go} onLayout={(y) => (ys.current.fiyat = y)} />

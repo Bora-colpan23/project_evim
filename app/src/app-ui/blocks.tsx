@@ -9,7 +9,7 @@ import { fonts, radius, useColors } from '../ui/theme';
 
 export function Icon({ name, size = 18, color }: { name: string; size?: number; color?: string }) {
   const c = useColors();
-  const xml = ic(name, size).replace(/currentColor/g, color || c.ink);
+  const xml = ic(name, size).replace(/currentColor/g, color || c.ink).replace(/\{RING\}/g, color || c.accent);
   return <SvgXml xml={xml} width={size} height={size} />;
 }
 
@@ -53,7 +53,7 @@ export function H2({ children, onDark }: { children: ReactNode; onDark?: boolean
 
 export function Label({ children, onDark, accent }: { children: ReactNode; onDark?: boolean; accent?: boolean }) {
   const c = useColors();
-  return <Text v="label" color={accent ? c.accent : onDark ? c.heroMuted : c.muted}>{children}</Text>;
+  return <Text v="label" color={accent ? c.accentText : onDark ? c.heroMuted : c.muted}>{children}</Text>;
 }
 
 export function Muted({ children, onDark, style, selectable }: { children?: ReactNode; onDark?: boolean; style?: any; selectable?: boolean }) {
@@ -167,7 +167,7 @@ export function Avatar({ text }: { text: string }) {
   const c = useColors();
   return (
     <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
-      <Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyXBold }}>{text}</Text>
+      <Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyXBold }}>{text}</Text>
     </View>
   );
 }

@@ -7,11 +7,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mem = new Map();
 const web = Platform.OS === 'web';
-let ready = false;
+let loading = null;
 
-export async function hydrate(){
-  if (ready) return;
-  ready = true;
+/** Tek seferlik: depo belleğe alınır; birden çok çağıran aynı sözü bekler. */
+export function hydrate(){
+  if (!loading) loading = load();
+  return loading;
+}
+
+async function load(){
   if (web){
     try { for (let i = 0; i < localStorage.length; i++){ const k = localStorage.key(i); mem.set(k, localStorage.getItem(k)); } } catch(e){}
     return;

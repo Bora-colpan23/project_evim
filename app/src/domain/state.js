@@ -372,7 +372,7 @@ export function closeLocal(){
 
 export let S = emptyState();
 /** Depo hazır olunca bir kez çağrılır. */
-export function boot(){ S = initial(); applyTheme(); }
+export function boot(){ if (!storageKey) S = initial(); applyTheme(); }
 export function isReadOnly(){ return readOnly; }
 
 /** Kayıt anahtarı: demo 'evim', gerçek hesapta kullanıcıya özel. */
@@ -426,6 +426,7 @@ export function replaceState(next, { silent = false } = {}){
 export function reset(){ replaceState(seed()); }
 
 /** Geçici, kaydedilmeyen arayüz durumu. */
+/** @type {any} */
 export const ui = {
   reqTab:'open',
   q:'',
@@ -433,8 +434,8 @@ export const ui = {
   lastChatKey:null,
   tour:null,
   media:{},        // depo yolu → görüntülenebilir adres (imzalı bağlantı ya da data URL)
-  authMsg:null,
-  role:'tenant'   // 'tenant' | 'landlord'     // giriş ekranlarında gösterilecek durum mesajı
+  authMsg:null,    // giriş ekranlarında gösterilecek durum mesajı
+  role:'tenant'    // 'tenant' | 'landlord'
 };
 
 export function applyTheme(){ emit(); }

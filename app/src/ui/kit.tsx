@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import {
-  Pressable, PressableProps, StyleProp, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle
+  Pressable, PressableProps, StyleProp, StyleSheet, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle
 } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { fonts, radius, useColors } from './theme';
@@ -28,29 +28,39 @@ export function Text({ v = 'body', muted, color, style, children, ...rest }: {
   );
 }
 
-/** Tüm dokunulabilir yüzeyler: basınca anında yaylanarak küçülür (apple-design: tepki gecikmesiz). */
-export function PressScale({ children, style, scaleTo = 0.97, ...rest }: PressableProps & { scaleTo?: number; style?: StyleProp<ViewStyle> }) {
+const LAYOUT_KEYS = ['flex', 'flexGrow', 'flexShrink', 'flexBasis', 'alignSelf', 'width', 'maxWidth', 'minWidth', 'height', 'margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'marginHorizontal', 'marginVertical'];
+
+/** Tüm dokunulabilir yüzeyler: basınca anında yaylanarak küçülür (apple-design: tepki gecikmesiz).
+    Yerleşim (flex, genişlik, kenar boşluğu) dış sarmalayıcıya, görünüm iç katmana gider. */
+export function PressScale({ children, style, wrapStyle, scaleTo = 0.97, ...rest }: PressableProps & { scaleTo?: number; style?: StyleProp<ViewStyle>; wrapStyle?: StyleProp<ViewStyle> }) {
   const s = useSharedValue(1);
   const a = useAnimatedStyle(() => ({ transform: [{ scale: s.value }] }));
+  const flat: any = StyleSheet.flatten(style) || {};
+  const outer: any = {};
+  const inner: any = {};
+  Object.keys(flat).forEach((key) => { (LAYOUT_KEYS.includes(key) ? outer : inner)[key] = flat[key]; });
+  // Dış sarmalayıcı genişlik/flex alıyorsa iç katman onu doldurur.
+  const fill = outer.flex !== undefined || outer.flexGrow !== undefined || outer.width !== undefined || outer.alignSelf === 'stretch';
   return (
     <Pressable
       {...rest}
+      style={[outer, wrapStyle]}
       onPressIn={(e) => { s.value = withSpring(scaleTo, { damping: 20, stiffness: 420 }); rest.onPressIn?.(e); }}
       onPressOut={(e) => { s.value = withSpring(1, { damping: 18, stiffness: 300 }); rest.onPressOut?.(e); }}
     >
-      <Animated.View style={[a, style]}>{children as ReactNode}</Animated.View>
+      <Animated.View style={[a, fill ? { alignSelf: 'stretch', flexGrow: 1 } : null, inner]}>{children as ReactNode}</Animated.View>
     </Pressable>
   );
 }
 
 export function Button({ title, onPress, kind = 'primary', block, disabled, loading, style, icon }: {
-  title: string; onPress?: () => void; kind?: 'primary' | 'dark' | 'ghost' | 'quiet';
+  title: string; onPress?: () => void; kind?: 'primary' | 'dark' | 'ghost' | 'quiet' | 'onDark';
   block?: boolean; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; icon?: ReactNode;
 }) {
   const c = useColors();
   const bg = kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
-  const fg = kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : c.ink;
-  const border = kind === 'ghost' ? c.line : 'transparent';
+  const fg = kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
+  const border = kind === 'ghost' ? c.line : kind === 'onDark' ? '#5a554c' : 'transparent';
   return (
     <PressScale
       accessibilityRole="button"

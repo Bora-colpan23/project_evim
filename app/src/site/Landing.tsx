@@ -211,7 +211,7 @@ function Contact({ onLayout }: { onLayout: (y: number) => void }) {
           <Text v="h2" color={c.heroInk} selectable>{CONFIG.supportEmail}</Text>
           <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
             <Button title={t('E-posta gönder')} onPress={mail} />
-            <Button kind="ghost" style={{ borderColor: '#4a463f' }} title={t('Destek sayfası')} onPress={() => Linking.openURL(CONFIG.legal.support)} />
+            <Button kind="onDark" title={t('Destek sayfası')} onPress={() => Linking.openURL(CONFIG.legal.support)} />
           </View>
         </View>
       </Container>

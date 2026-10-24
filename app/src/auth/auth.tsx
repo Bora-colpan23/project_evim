@@ -2,18 +2,19 @@
    Uygulama (/uygulama) yalnızca oturumla açılır. */
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import * as Crypto from 'expo-crypto';
-import { storage } from '../domain/storage';
+import { hydrate, storage } from '../domain/storage';
 import { LIVE, CONFIG } from '../domain/config';
 import { closeLocal, openLocal, ui } from '../domain/state';
 import { t } from '../domain/i18n';
+import { account } from '../domain/billing';
 
 export type Role = 'tenant' | 'landlord';
-export type User = { id: string; email: string; name: string; role: Role };
+export type User = { id: string; email: string; name: string; role: Role; createdAt?: number };
 
 const ACCOUNTS = 'kiracim-hesaplar';
 const SESSION = 'kiracim-oturum';
 
-type Account = User & { hash: string; salt: string };
+type Account = User & { hash: string; salt: string; createdAt?: number };
 
 const readAccounts = (): Account[] => { try { return JSON.parse(storage.getItem(ACCOUNTS) || '[]'); } catch { return []; } };
 const hashPw = (pw: string, salt: string) => Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, salt + ':' + pw);
@@ -41,9 +42,11 @@ type Ctx = {
 const AuthCtx = createContext<Ctx>(null as unknown as Ctx);
 export const useAuth = () => useContext(AuthCtx);
 
+/** Veri bu sürümde cihazdadır (hesap başına ayrı anahtar); sunucu eşitlemesi sonraki aşamadır. */
 function enter(u: User) {
   ui.role = u.role;
-  if (!LIVE) openLocal('kiracim-veri-' + u.id, u.role);
+  account.since = u.createdAt || Date.now();
+  openLocal('kiracim-veri-' + u.id, u.role);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -53,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        await hydrate();
         if (LIVE) {
           const c = await supabase();
           const { data } = await c.auth.getSession();
@@ -65,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           const id = storage.getItem(SESSION);
           const a = id && readAccounts().find((x) => x.id === id);
-          if (a) { const u = { id: a.id, email: a.email, name: a.name, role: a.role }; enter(u); setUser(u); }
+          if (a) { const u = { id: a.id, email: a.email, name: a.name, role: a.role, createdAt: a.createdAt }; enter(u); setUser(u); }
         }
       } catch {}
       setReady(true);
@@ -87,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const a = readAccounts().find((x) => x.email === email);
       if (!a || a.hash !== (await hashPw(password, a.salt))) return t('E-posta ya da şifre yanlış.');
       storage.setItem(SESSION, a.id);
-      const u = { id: a.id, email: a.email, name: a.name, role: a.role };
+      const u = { id: a.id, email: a.email, name: a.name, role: a.role, createdAt: a.createdAt };
       enter(u); setUser(u); return null;
     } catch { return t('Bağlantı kurulamadı. Biraz sonra yeniden dene.'); }
   }, []);
@@ -108,10 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (list.some((x) => x.email === email)) return t('Bu e-posta ile bir hesap zaten var.');
       const salt = Crypto.randomUUID();
       const id = Crypto.randomUUID().slice(0, 12);
-      list.push({ id, email, name, role, salt, hash: await hashPw(password, salt) });
+      const createdAt = Date.now();
+      list.push({ id, email, name, role, salt, createdAt, hash: await hashPw(password, salt) });
       storage.setItem(ACCOUNTS, JSON.stringify(list));
       storage.setItem(SESSION, id);
-      const u = { id, email, name, role };
+      const u = { id, email, name, role, createdAt };
       enter(u); setUser(u); return null;
     } catch { return t('Bağlantı kurulamadı. Biraz sonra yeniden dene.'); }
   }, []);

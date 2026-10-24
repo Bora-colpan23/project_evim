@@ -17,6 +17,7 @@ let errors;
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
+  test.setTimeout(300_000);                       // ilk çalıştırmada uygulama derlenir
   if (!existsSync(DIST + '/index.html')) {
     execSync('npx expo export -p web --output-dir dist-fake', {
       cwd: new URL('../app', import.meta.url).pathname, stdio: 'inherit',

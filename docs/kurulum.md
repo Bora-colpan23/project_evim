@@ -227,6 +227,24 @@ yönetici verebilir (`tests/admin.sql.spec.mjs`).
 
 ---
 
+## Yayına alma (GitHub Pages, otomatik güncellenen)
+
+`.github/workflows/pages.yml` uygulamayı (`app/`) her push'ta derler ve yayınlar. Bir kez yapılacaklar:
+
+1. **Supabase**: yukarıdaki 1-3. bölümleri yap. *Project Settings → API* sayfasından **Project URL** ve **anon public** anahtarını kopyala (`service_role` anahtarını hiçbir yere yazma).
+2. **GitHub → Settings → Secrets and variables → Actions → Variables** altına iki değişken ekle:
+   - `SUPABASE_URL` = Project URL
+   - `SUPABASE_ANON_KEY` = anon public anahtar
+   - (isteğe bağlı) `CUSTOM_DOMAIN` = `kiracim.online`
+3. **GitHub → Settings → Pages → Source: "GitHub Actions"** seç.
+4. Değişiklikler **varsayılan dala** birleşince site yayınlanır (Actions sekmesinde "GitHub Pages" çalışması yeşil olur). Adres: `https://<kullanıcı>.github.io/project_evim/` ya da `CUSTOM_DOMAIN` verdiysen o alan adı.
+5. Supabase **Authentication → URL Configuration** altına bu adresi **Site URL** ve **Redirect URL** olarak ekle.
+6. Uygulamadan bir hesap aç, sonra yukarıdaki SQL ile kendini yönetici yap.
+
+Bundan sonra varsayılan dala her birleşmede site kendiliğinden güncellenir. Değişkenler boşsa site yerel hesap moduyla yayınlanır (veri yalnızca o tarayıcıda).
+
+---
+
 ## 8. Kontrol listesi
 
 - [ ] İki farklı tarayıcıda (ya da biri gizli pencerede) bir mülk sahibi, bir kiracı hesabı aç.

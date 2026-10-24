@@ -15,7 +15,7 @@ import { tl, fmt, fmtFull, monthYear, parse, t0, iso, daysTo, up, percent } from
 import { Button, Chip, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import {
-  Avatar, Bar, Big, Card, Empty, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, Mid, Muted, Note, Row, Seg, Stack, StatusChip, initials, toneOf, typeIcon
+  Avatar, Bar, Big, Card, Empty, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, Mid, Muted, Note, Row, Seg, Stack, StatusChip, initials, toneOf, typeIcon, BigRoll
 } from './blocks';
 import { Toggle } from './forms';
 import { useStore } from './hooks';
@@ -186,7 +186,7 @@ export function Portfolio() {
       <Hero>
         <Label onDark>{t('{month} kira durumu', { month: monthYear(m.key) })}</Label>
         <Row between align="flex-end">
-          <View style={{ flex: 1 }}><Big onDark>{tl(m.collected)}</Big><Muted onDark>{tl(m.expected)} {t('beklenenin tahsil edilen kısmı')}</Muted></View>
+          <View style={{ flex: 1 }}><BigRoll onDark value={m.collected} /><Muted onDark>{tl(m.expected)} {t('beklenenin tahsil edilen kısmı')}</Muted></View>
           <Text v="h2" color="#fff">{percent(Math.round(m.pct * 100))}</Text>
         </Row>
         <Bar pct={m.pct * 100} />
@@ -395,7 +395,7 @@ export function Report() {
       <Seg scroll value={year} onChange={(y) => { ui.reportYear = y; setYear(y); }} options={years.map((y) => [y, y] as [string, string])} />
       <Hero>
         <Label onDark>{t('{year} net kira getirisi', { year })}</Label>
-        <Big onDark>{tl(yn.net)}</Big>
+        <BigRoll onDark value={yn.net} />
         <Row><View style={{ flex: 1 }}><Muted onDark>{yn.withheld ? t('Brüt kira') : t('Tahsil edilen')}</Muted><Text v="h3" color="#fff">{tl(yn.gross)}</Text></View><View style={{ flex: 1 }}><Muted onDark>{t('Giderler')}</Muted><Text v="h3" color="#fff">{tl(yn.exp)}</Text></View></Row>
         {yn.withheld ? <Muted onDark>{t('Hesaba geçen {received} · kiracının kestiği stopaj {tax}', { received: tl(yn.received), tax: tl(yn.withheld) })}</Muted> : null}
         <Muted onDark>{t('Onaylanmış ve kısmi ödemelerden, girilen giderler düşülerek hesaplanır.')}</Muted>

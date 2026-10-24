@@ -11,6 +11,7 @@ import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
 import { MonthStrip } from '../ui/Facade';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
+import { Slam } from '../ui/motion';
 import { useLangTick } from '../app-ui/hooks';
 import { Steps } from '../app-ui/blocks';
 import { features, more, planPoints, plans } from './content';
@@ -117,14 +118,14 @@ function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string)
         <View style={{ gap: 6 }}>
           <Animated.View entering={enter(0)} style={{ marginBottom: 14 }}><Chip tone="neutral" label={t('Kiracılar için ücretsiz')} /></Animated.View>
           <Animated.View entering={enter(1)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: size * 0.12 }}>
-            <D size={size}>{t('Kira işi,')}</D>
+            <Slam delay={150} height={Math.round(size * 1.12)}><D size={size}>{t('Kira işi,')}</D></Slam>
             <Pill bg={c.surface} fg={c.ink} size={pill}>
               <View style={{ width: pill * 0.4, height: pill * 0.4, borderRadius: pill * 0.1, backgroundColor: c.lemon }} />
               <RNText style={{ fontFamily: fonts.bodyBold, fontSize: pill * 0.4, color: c.ink }}>{t('Ödendi')}</RNText>
             </Pill>
           </Animated.View>
-          <Animated.View entering={enter(2)}><D size={size}>{t('ev kadar')}</D></Animated.View>
-          <Animated.View entering={enter(3)}><D size={size}>{t('rahat.')}</D></Animated.View>
+          <Slam delay={320} height={Math.round(size * 1.12)}><D size={size}>{t('ev kadar')}</D></Slam>
+          <Slam delay={490} height={Math.round(size * 1.12)}><D size={size} color={c.accentText}>{t('rahat.')}</D></Slam>
         </View>
 
         <View style={{ flexDirection: desktop ? 'row' : 'column', gap: desktop ? 56 : 28, alignItems: desktop ? 'flex-end' : 'stretch', justifyContent: 'space-between' }}>

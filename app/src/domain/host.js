@@ -14,6 +14,8 @@ export const host = {
   /** Dışa aktarma: metin ve dosya */
   saveFile: () => {},
   openUrl: () => {},
+  /** Kutlama animasyonu (konfeti + tik): ({ title }) */
+  celebrate: () => {},
   /** Hafif haptik titreşim (ödeme onayı). */
   haptic: () => {}
 };

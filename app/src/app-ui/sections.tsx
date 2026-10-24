@@ -15,7 +15,7 @@ import { tl, fmt, fmtFull, monthYear, parse, t0, iso, between, daysTo, tm, dayLa
 import { Button, Chip, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import {
-  Avatar, Bar, Big, Card, Empty, FileLink, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, List, Mid, Muted, Note, ReviewChip, Row, Seg, Stack, Steps, StatusChip, Thumbs, initials, toneOf, typeIcon
+  Avatar, Bar, Big, BigRoll, Card, Empty, FileLink, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, List, Mid, Muted, Note, ReviewChip, Row, Seg, Stack, Steps, StatusChip, Thumbs, initials, toneOf, typeIcon
 } from './blocks';
 import { Toggle } from './forms';
 import { MonthWindows } from '../ui/Facade';
@@ -66,7 +66,7 @@ export function RentHero({ p }: { p: any }) {
       <Row between align="flex-start">
         <View style={{ flex: 1, gap: 4 }}>
           <Label onDark>{monthYear(per.key)} {t('kirası')}</Label>
-          <Big onDark>{tl(expectedAt(p, per.key))}</Big>
+          <BigRoll onDark value={expectedAt(p, per.key)} />
           {p.stopaj ? <Muted onDark>{stopajLine(p, per.key)}</Muted> : null}
           <View style={{ marginVertical: 6 }}><MonthWindows p={p} onDark /></View>
           <Muted onDark>{line}</Muted>
@@ -443,7 +443,7 @@ export function SecMoveOut({ p }: { p: any }) {
         <KV onDark k={t('Depozito')} v={tl(sm.deposit)} />
         <KV onDark k={t('Kesintiler')} v={'− ' + tl(sm.deducted)} />
         <Row between align="flex-end">
-          <View><Muted onDark>{t('İade edilecek')}</Muted><Big onDark>{tl(sm.refund)}</Big></View>
+          <View><Muted onDark>{t('İade edilecek')}</Muted><BigRoll onDark value={sm.refund} /></View>
           {mo.refunded ? <Chip tone="ok" label={t('İade edildi')} /> : both ? <Chip tone="warn" label={t('Onaylandı')} /> : <Chip label={t('Taslak')} />}
         </Row>
         {sm.extra ? <Note warn>{t('Kesintiler depozitoyu')} {tl(sm.extra)} {t('aşıyor; bu tutar kiracıdan ayrıca talep edilir.')}</Note> : null}
@@ -533,7 +533,7 @@ export function SecExpenses({ p }: { p: any }) {
       </Row>
       <Hero>
         <Label onDark>{t('{year} net getiri', { year })}</Label>
-        <Big onDark>{tl(yn.net)}</Big>
+        <BigRoll onDark value={yn.net} />
         <Row><View style={{ flex: 1 }}><Muted onDark>{yn.withheld ? t('Brüt kira') : t('Tahsil edilen')}</Muted><Text v="h3" color="#fff">{tl(yn.gross)}</Text></View><View style={{ flex: 1 }}><Muted onDark>{t('Giderler')}</Muted><Text v="h3" color="#fff">{tl(yn.exp)}</Text></View></Row>
         {yn.withheld ? <Muted onDark>{t('Hesaba geçen {received} · kiracının kestiği stopaj {tax}', { received: tl(yn.received), tax: tl(yn.withheld) })}</Muted> : null}
         {yn.yieldPct != null ? <Muted onDark>{t('Değere göre net getiri: {pct}', { pct: percent(yn.yieldPct * 100) })}</Muted> : null}

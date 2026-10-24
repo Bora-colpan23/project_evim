@@ -9,6 +9,7 @@ import { host } from '../domain/host';
 import { Button, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useColors } from '../ui/theme';
 import { Icon } from './blocks';
+import { CelebrateBurst } from '../ui/motion';
 
 type Toast = { id: number; title: string; body: string; icon?: string; actions?: { label: string; run: () => void }[] };
 type Confirm = { title: string; body?: string; ok?: string; danger?: boolean; resolve: (v: boolean) => void };
@@ -24,6 +25,7 @@ export function OverlayProvider({ children, renderSheet }: { children: ReactNode
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [sheet, setSheet] = useState<SheetState>(null);
+  const [cel, setCel] = useState<{ id: number; title: string } | null>(null);
   const seq = useRef(0);
 
   const dismiss = useCallback((id: number) => setToasts((l) => l.filter((x) => x.id !== id)), []);
@@ -40,6 +42,11 @@ export function OverlayProvider({ children, renderSheet }: { children: ReactNode
     host.go = (path: string) => router.push(path as any);
     host.openSheet = (name: string, params: any) => open(name, params);
     host.closeSheet = close;
+    host.celebrate = (o: any) => {
+      const id = ++seq.current;
+      setCel({ id, title: o?.title || '' });
+      setTimeout(() => setCel((x) => (x && x.id === id ? null : x)), 2300);
+    };
     host.haptic = () => { import('expo-haptics').then((H) => H.impactAsync(H.ImpactFeedbackStyle.Light)).catch(() => {}); };
     host.openUrl = (u: string) => { Linking.openURL(u).catch(() => {}); };
     host.saveFile = async (name: string, text: string, type: string) => {
@@ -75,11 +82,13 @@ export function OverlayProvider({ children, renderSheet }: { children: ReactNode
             </Animated.View>
           )}
           <ToastLayer toasts={toasts} dismiss={dismiss} inModal />
+          {cel && <CelebrateBurst key={cel.id} title={cel.title} />}
           <ConfirmLayer confirm={confirm} done={(v) => { confirm?.resolve(v); setConfirm(null); }} />
         </Animated.View>
       </Modal>
 
       {!sheet && <ToastLayer toasts={toasts} dismiss={dismiss} />}
+      {!sheet && cel && <CelebrateBurst key={cel.id} title={cel.title} />}
       {!sheet && <ConfirmLayer confirm={confirm} done={(v) => { confirm?.resolve(v); setConfirm(null); }} />}
     </Ctx.Provider>
   );

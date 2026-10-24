@@ -101,6 +101,12 @@ test('yönetici dekontu onaylar; mülk sahibi onay bekleyen ödemeyi görür ve 
 
   await login(page, 'ev@ornek.com');
   await expect(page.getByText('Onay bekliyor').first()).toBeVisible();
+
+  // Mülk sahibi onaylayınca kutlama animasyonu (tik + konfeti) çıkar, ödeme onaylanır.
+  await page.goto(url('/uygulama/mulk?pid=p1&sub=odeme'));
+  await page.getByRole('button', { name: 'Onayla', exact: true }).first().click();
+  await expect(page.getByLabel('Ödeme onaylandı').first()).toBeVisible();
+  await expect.poll(async () => (await db(page)).tables.payments[0].status).toBe('approved');
 });
 
 test('yönetici panelinde ödemeler ve mülk sahibi → kiracı ağacı görünür', async ({ page }) => {

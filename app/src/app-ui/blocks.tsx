@@ -9,6 +9,8 @@ import { t } from '../domain/i18n';
 import { LIVE } from '../domain/config';
 import { fileUrl, mediaSrc, reviewOf } from '../domain/backend';
 import { useStore } from './hooks';
+import { useRoll } from '../ui/motion';
+import { tl } from '../domain/util';
 import { fonts, radius, useColors } from '../ui/theme';
 
 export function Icon({ name, size = 18, color }: { name: string; size?: number; color?: string }) {
@@ -78,6 +80,12 @@ export function KV({ k, v, onDark }: { k: ReactNode; v: ReactNode; onDark?: bool
 export function Big({ children, onDark }: { children: ReactNode; onDark?: boolean }) {
   const c = useColors();
   return <Text v="num" color={onDark ? c.heroInk : c.ink}>{children}</Text>;
+}
+
+/** Para tutarı: ilk gösterimde ve değer değişince yuvarlanarak gelir. */
+export function BigRoll({ value, onDark, format = tl }: { value: number; onDark?: boolean; format?: (n: number) => string }) {
+  const v = useRoll(Number(value) || 0);
+  return <Big onDark={onDark}>{format(v)}</Big>;
 }
 
 export function Mid({ children }: { children: ReactNode }) {

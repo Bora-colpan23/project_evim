@@ -23,6 +23,7 @@ import { stopajLine, useGo } from './sections';
 import { pickJson } from './media';
 import { useStore } from './hooks';
 import { useSheet } from './overlays';
+import { PayButton } from '../ui/motion';
 import { host } from '../domain/host';
 
 const propOf = (pid?: string) => (pid && (S as any).props[pid] ? P(pid) : P((S as any).myHome));
@@ -323,7 +324,15 @@ function PayFormSheet({ pid, k, close }: { pid?: string; k?: string; close: () =
       <Text2 label={t('Not (isteğe bağlı)')} v={v} set={set} k="note" maxLength={120} placeholder={t('Ör. havale açıklaması')} />
       <Muted>{t('Tutar kiranın altındaysa ödeme kısmi olarak işaretlenir ve kalan bakiye takip edilir.')}</Muted>
       {err ? <Text v="small" color="#862A19">{err}</Text> : null}
-      <Actions onCancel={close} submitLabel={t('Gönder')} onSubmit={async () => { if (!files.length) { setErr(t('Dekont dosyası seç.')); return; } await submit('pay', { ...v, pid: p.id, key, files }); }} />
+      <Row>
+        <Button kind="ghost" title={t('Vazgeç')} onPress={close} style={{ flex: 1 }} />
+        <PayButton title={t('Gönder')} doneTitle={t('Gönderildi')} style={{ flex: 1 }} onPress={async () => {
+          if (!files.length) { setErr(t('Dekont dosyası seç.')); return false; }
+          const ok = await submit('pay', { ...v, pid: p.id, key, files, keepOpen: true });
+          if (ok) setTimeout(close, 900);
+          return ok;
+        }} />
+      </Row>
     </Stack>
   );
 }

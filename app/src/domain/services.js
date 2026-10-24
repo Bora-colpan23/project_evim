@@ -132,6 +132,7 @@ export const A = {
     sysMsg(p, monthYear(d.key)+(' '+t('kirası onaylandı')));
     save(); host.closeSheet();
     host.haptic();
+    host.celebrate({ title:t('Ödeme onaylandı') });
     notify({ title:t('Ödeme onaylandı'), body:p.name+' · '+monthYear(d.key)+(' '+t('kirası. Kiracıya bildirildi.')), icon:'card' });
   },
   nudge: d => {
@@ -492,7 +493,7 @@ export async function submit(type, v){
     if (stored) rec.photo = stored;
     p.pay[key] = rec;
     sysMsg(p, monthYear(key)+(' '+t('kirası için dekont yüklendi'))+(rec.status === 'partial' ? (' '+t('(kısmi:')+' ')+tl(total)+')' : ''));
-    save(); host.closeSheet();
+    save(); if (!v.keepOpen) host.closeSheet();
     notify({
       title: rec.status === 'partial' ? t('Kısmi ödeme kaydedildi') : t('Dekont yüklendi'),
       body: rec.status === 'partial'
@@ -677,6 +678,7 @@ export async function submit(type, v){
     p.moveOut.refunded = { amount, date };
     sysMsg(p, (t('Depozito iadesi yapıldı:')+' ')+tl(amount));
     save(); host.closeSheet();
+    host.celebrate({ title:t('İade kaydedildi') });
     notify({ title:t('İade kaydedildi'), body:tl(amount)+' · '+fmtFull(parse(date))+t('. Kiracıya bildirildi.'), icon:'key' });
     return true;
   }

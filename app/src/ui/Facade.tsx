@@ -21,21 +21,6 @@ function Win({ kind, i, onDark, size }: { kind: Kind; i: number; onDark?: boolea
   );
 }
 
-/** 6×4 süs ızgarası; pattern pencere türlerini belirler. */
-export function WindowGrid({ cols = 6, rows = 4, pattern, onDark, gap = 8 }: { cols?: number; rows?: number; pattern?: Kind[]; onDark?: boolean; gap?: number }) {
-  const def: Kind[] = ['lit', 'lit', 'lit', 'mint', 'off', 'off', 'lit', 'lit', 'lav', 'off', 'off', 'off', 'lit', 'mint', 'off', 'off', 'off', 'off', 'lit', 'off', 'off', 'off', 'off', 'off'];
-  const p = pattern || def;
-  return (
-    <View accessibilityElementsHidden style={{ gap }}>
-      {Array.from({ length: rows }).map((_, r) => (
-        <View key={r} style={{ flexDirection: 'row', gap }}>
-          {Array.from({ length: cols }).map((__, k) => <Win key={k} kind={p[(r * cols + k) % p.length]} i={r * cols + k} onDark={onDark} />)}
-        </View>
-      ))}
-    </View>
-  );
-}
-
 /** Verilen türlerle 12'li (ya da n'li) pencere şeridi. */
 export function MonthStrip({ kinds, onDark }: { kinds: Kind[]; onDark?: boolean }) {
   return (

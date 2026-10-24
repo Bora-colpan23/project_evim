@@ -112,8 +112,6 @@ export const EN_EXTRA = {
   'Net yaz, yumuşak davran.': 'Write plainly, act gently.',
   'Sayı büyük, söz kısa.': 'Big numbers, short words.',
   'Kiracım böyle düşünür': 'How Kiracım thinks',
-  'Cephe deseni': 'Facade pattern',
-  'Her pencere bir ay. Ödenen aylar yanar.': 'Each window is a month. Paid months light up.',
   'Uygulama': 'App',
   'Hesap türü': 'Account type',
   'Kiracı': 'Tenant',

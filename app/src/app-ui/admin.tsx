@@ -50,7 +50,7 @@ export default function AdminPanel() {
             <Row gap={8}>
               <Muted>{user?.email}</Muted>
               <Button kind="ghost" title={t('Yenile')} onPress={load} loading={busy} />
-              <Button kind="ghost" title={t('Çıkış yap')} onPress={async () => { await signOut(); router.replace('/giris'); }} />
+              <Button kind="ghost" title={t('Çıkış yap')} onPress={async () => { await signOut(); router.replace('/giris/yonetici'); }} />
             </Row>
           </Row>
 

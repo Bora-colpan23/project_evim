@@ -8,7 +8,7 @@ export default function AdminGate() {
   const { user, ready } = useAuth();
   const c = useColors();
   if (!ready) return <View style={{ flex: 1, backgroundColor: c.bg }} />;
-  if (!user) return <Redirect href="/giris" />;
+  if (!user) return <Redirect href="/giris/yonetici" />;
   if (!user.admin) return <Redirect href="/uygulama" />;
   return <Slot />;
 }

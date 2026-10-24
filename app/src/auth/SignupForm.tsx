@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { Linking, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
-import AuthShell from '../auth/AuthShell';
-import { Role, useAuth } from '../auth/auth';
+import AuthShell from './AuthShell';
+import { Role, useAuth } from './auth';
 import { CONFIG } from '../domain/config';
 import { t } from '../domain/i18n';
 import { Button, Field, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useColors } from '../ui/theme';
 
-export default function Kayit() {
+export default function SignupForm({ role }: { role: Role }) {
   const { user, ready, signUp } = useAuth();
   const router = useRouter();
   const c = useColors();
-  const [role, setRole] = useState<Role>('tenant');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
@@ -30,24 +29,9 @@ export default function Kayit() {
     else if (e) setErr(e);
     else router.replace('/uygulama');
   };
-  const roles: [Role, string, string][] = [
-    ['tenant', t('Kiracıyım'), t('Kiramı öder, taleplerimi takip ederim')],
-    ['landlord', t('Mülk sahibiyim'), t('Mülklerimi ve kiracılarımı yönetirim')]
-  ];
+  const landlord = role === 'landlord';
   return (
-    <AuthShell title={t('Kayıt ol')} lead={t('Kiracılar ücretsiz. Mülk sahipleri 14 gün kartsız dener.')}>
-      <View style={{ gap: 10 }} accessibilityRole="radiogroup">
-        <Text v="small" style={{ fontFamily: fonts.bodyBold }}>{t('Hesap türü')}</Text>
-        {roles.map(([k, title, sub]) => {
-          const on = role === k;
-          return (
-            <PressScale key={k} onPress={() => setRole(k)} accessibilityRole="radio" accessibilityState={{ selected: on }}
-              style={{ padding: 16, borderRadius: radius.md, borderWidth: 1.5, borderColor: on ? c.accent : c.line, backgroundColor: on ? c.accentSoft : c.surface, gap: 2 }}>
-              <Text v="h3">{title}</Text><Text v="small" muted>{sub}</Text>
-            </PressScale>
-          );
-        })}
-      </View>
+    <AuthShell title={landlord ? t('Mülk sahibi olarak kayıt ol') : t('Kiracı olarak kayıt ol')} lead={landlord ? t('Mülk sahipleri 14 gün kartsız dener.') : t('Kiracılar ücretsiz.')}>
       <Field label={t('Ad soyad')} value={name} onChangeText={setName} autoComplete="name" maxLength={60} />
       <Field label={t('E-posta')} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" />
       <Field label={t('Şifre')} value={pw} onChangeText={setPw} secureTextEntry autoComplete="new-password" hint={t('En az 8 karakter.')} />
@@ -65,7 +49,8 @@ export default function Kayit() {
       {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
       {info ? <Text v="small" color={c.okInk}>{info}</Text> : null}
       <Button block title={t('Hesap oluştur')} onPress={submit} loading={busy} />
-      <PressScale onPress={() => router.push('/giris')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyBold }}>{t('Hesabın var mı? Giriş yap')}</Text></PressScale>
+      <PressScale onPress={() => router.push(landlord ? '/giris/mulk-sahibi' : '/giris/kiraci')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyBold }}>{t('Hesabın var mı? Giriş yap')}</Text></PressScale>
+      <PressScale onPress={() => router.replace(landlord ? '/kayit/kiraci' : '/kayit/mulk-sahibi')} accessibilityRole="link"><Text v="small" muted>{landlord ? t('Kiracı mısın? Kiracı olarak kayıt ol') : t('Mülk sahibi misin? Mülk sahibi olarak kayıt ol')}</Text></PressScale>
     </AuthShell>
   );
 }

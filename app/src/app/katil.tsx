@@ -30,8 +30,8 @@ export default function Katil() {
           <Text v="h2" selectable style={{ letterSpacing: 4, fontFamily: fonts.siteBold }}>{code}</Text>
         </View>
       ) : null}
-      <Button block title={t('Kiracı hesabı oluştur')} onPress={() => router.push('/kayit')} />
-      <Button block kind="ghost" title={t('Hesabım var, giriş yap')} onPress={() => router.push('/giris')} />
+      <Button block title={t('Kiracı hesabı oluştur')} onPress={() => router.push('/kayit/kiraci')} />
+      <Button block kind="ghost" title={t('Hesabım var, giriş yap')} onPress={() => router.push('/giris/kiraci')} />
     </AuthShell>
   );
 }

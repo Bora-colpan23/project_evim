@@ -37,10 +37,11 @@ const url = p => `http://localhost:${PORT}${p}`;
 const db = page => page.evaluate(() => JSON.parse(localStorage.getItem('__fakedb')));
 
 /** Oturumu kapatıp (sahte sunucu oturumu) verilen hesapla giriş yapar. */
-async function login(page, email) {
-  await page.goto(url('/giris'));
+const ENTRY = { 'kiraci@ornek.com': '/giris/kiraci', 'ev@ornek.com': '/giris/mulk-sahibi', 'admin@ornek.com': '/giris/yonetici' };
+async function login(page, email, path = ENTRY[email]) {
+  await page.goto(url(path));
   await page.evaluate(() => { const d = JSON.parse(localStorage.getItem('__fakedb')); d.session = null; localStorage.setItem('__fakedb', JSON.stringify(d)); });
-  await page.reload();
+  await page.goto(url(path));
   await page.getByLabel('E-posta').fill(email);
   await page.getByLabel('Şifre', { exact: true }).fill(PW);
   await page.getByRole('button', { name: 'Giriş yap' }).click();
@@ -171,4 +172,38 @@ test('/katil?kod=… bağlantısı: kod saklanır, giriş sonrası kiracı mülk
   await page.getByRole('button', { name: 'Giriş yap' }).click();
   await expect(page.getByText('Moda Dairesi').first()).toBeVisible();
   expect((await db(page)).tables.invites[0].accepted_by).toBeTruthy();
+});
+
+test('giriş ayrı: hesap türü girişle uyuşmazsa oturum açılmaz', async ({ page }) => {
+  await page.goto(url('/giris'));
+  await expect(page.getByRole('link', { name: /Kiracı girişi/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Mülk sahibi girişi/ })).toBeVisible();
+
+  await login(page, 'ev@ornek.com', '/giris/kiraci');
+  await expect(page.getByText('Bu hesap bir mülk sahibi hesabı. Mülk sahibi girişini kullan.')).toBeVisible();
+  await login(page, 'kiraci@ornek.com', '/giris/mulk-sahibi');
+  await expect(page.getByText('Bu hesap bir kiracı hesabı. Kiracı girişini kullan.')).toBeVisible();
+  await login(page, 'kiraci@ornek.com', '/giris/yonetici');
+  await expect(page.getByText('Bu hesap yönetici hesabı değil.')).toBeVisible();
+  await login(page, 'admin@ornek.com', '/giris/kiraci');
+  await expect(page.getByText('Bu bir yönetici hesabı. Yönetici girişini kullan.')).toBeVisible();
+  await expect(page).toHaveURL(/\/giris\/kiraci$/);
+
+  await login(page, 'ev@ornek.com', '/giris/mulk-sahibi');
+  await expect(page).toHaveURL(/\/uygulama$/);
+  await expect(page.getByText('Moda Dairesi').first()).toBeVisible();
+});
+
+test('kayıt ayrı: mülk sahibi kaydı rol seçtirmeden mülk sahibi hesabı açar', async ({ page }) => {
+  await page.goto(url('/kayit'));
+  await page.getByRole('link', { name: /Mülk sahibi olarak kayıt ol/ }).click();
+  await expect(page).toHaveURL(/\/kayit\/mulk-sahibi$/);
+  await page.getByLabel('Ad soyad').fill('Yeni Mülk Sahibi');
+  await page.getByLabel('E-posta').fill('yeni@ornek.com');
+  await page.getByLabel('Şifre', { exact: true }).fill(PW);
+  await page.getByRole('checkbox').click();
+  await page.getByRole('button', { name: 'Hesap oluştur' }).click();
+  await expect(page).toHaveURL(/\/uygulama$/);
+  const d = await db(page);
+  expect(d.tables.profiles.find(p => p.name === 'Yeni Mülk Sahibi').role).toBe('landlord');
 });

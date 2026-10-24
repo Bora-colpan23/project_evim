@@ -10,6 +10,7 @@ import { account } from '../domain/billing';
 import * as backend from '../domain/backend';
 
 export type Role = 'tenant' | 'landlord';
+export type Entry = Role | 'admin';
 export type User = { id: string; email: string; name: string; role: Role; createdAt?: number; admin?: boolean };
 
 const ACCOUNTS = 'kiracim-hesaplar';
@@ -23,7 +24,8 @@ const hashPw = (pw: string, salt: string) => Crypto.digestStringAsync(Crypto.Cry
 
 type Ctx = {
   user: User | null; ready: boolean; live: boolean;
-  signIn(e: string, p: string): Promise<string | null>;
+  /** `as`: hangi girişten gelindi; hesap türü uyuşmazsa oturum açılmaz. */
+  signIn(e: string, p: string, as?: Entry): Promise<string | null>;
   signUp(a: { name: string; email: string; password: string; role: Role }): Promise<string | null>;
   reset(email: string): Promise<string | null>;
   signOut(): Promise<void>;
@@ -43,6 +45,14 @@ function enter(u: User) {
 
 /** Bekleyen davet kodu (/katil bağlantısından gelir); giriş sonrası kabul edilir. */
 export const keepInvite = (code: string) => { try { storage.setItem(INVITE, code.trim().toUpperCase()); } catch {} };
+
+/** Girişten gelinen tür hesapla uyuşmuyorsa kullanıcıya doğru girişi söyler. */
+function wrongEntry(u: User, as: Entry): string | null {
+  if (as === 'admin') return u.admin ? null : t('Bu hesap yönetici hesabı değil.');
+  if (u.admin) return t('Bu bir yönetici hesabı. Yönetici girişini kullan.');
+  if (u.role === as) return null;
+  return as === 'tenant' ? t('Bu hesap bir mülk sahibi hesabı. Mülk sahibi girişini kullan.') : t('Bu hesap bir kiracı hesabı. Kiracı girişini kullan.');
+}
 
 /** Gerçek hesap: sunucudan profil ve veriyi yükler; yönetici hesabı ev verisi yüklemez. */
 async function enterLive(au: { id: string; email?: string }): Promise<User> {
@@ -83,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string, as?: Entry) => {
     email = email.trim().toLowerCase();
     if (!email || !password) return t('E-posta ve şifreni gir.');
     try {
@@ -91,10 +101,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const c = await backend.client();
         const { data, error } = await c.auth.signInWithPassword({ email, password });
         if (error) return backend.humanError(error);
-        setUser(await enterLive(data.user)); return null;
+        const u = await enterLive(data.user);
+        const wrong = as && wrongEntry(u, as);
+        if (wrong) { await backend.closeSession(); closeLocal(); ui.role = 'tenant'; return wrong; }
+        setUser(u); return null;
       }
+      if (as === 'admin') return t('Yönetici girişi yalnızca sunucuya bağlı kurulumda çalışır.');
       const a = readAccounts().find((x) => x.email === email);
       if (!a || a.hash !== (await hashPw(password, a.salt))) return t('E-posta ya da şifre yanlış.');
+      if (as && a.role !== as) return wrongEntry({ ...a, admin: false }, as);
       storage.setItem(SESSION, a.id);
       const u = { id: a.id, email: a.email, name: a.name, role: a.role, createdAt: a.createdAt };
       enter(u); setUser(u); return null;

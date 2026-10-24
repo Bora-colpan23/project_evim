@@ -3,6 +3,7 @@ import { Platform, View } from 'react-native';
 import { Slot } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { BricolageGrotesque_600SemiBold, BricolageGrotesque_700Bold } from '@expo-google-fonts/bricolage-grotesque';
+import { Outfit_600SemiBold, Outfit_700Bold } from '@expo-google-fonts/outfit';
 import { Manrope_500Medium, Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
 import { hydrate } from '../domain/storage';
 import { initLang } from '../domain/i18n';
@@ -12,7 +13,7 @@ import { useColors } from '../ui/theme';
 
 export default function Root() {
   const [fontsOk] = useFonts({
-    BricolageGrotesque_600SemiBold, BricolageGrotesque_700Bold, Manrope_500Medium, Manrope_700Bold, Manrope_800ExtraBold
+    BricolageGrotesque_600SemiBold, BricolageGrotesque_700Bold, Outfit_600SemiBold, Outfit_700Bold, Manrope_500Medium, Manrope_700Bold, Manrope_800ExtraBold
   });
   const [stored, setStored] = useState(false);
   useEffect(() => {

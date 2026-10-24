@@ -11,7 +11,9 @@
    Türkçe saklanır ve yalnızca gösterilirken çevrilir; dil değişince veri
    bozulmaz. */
 
-import { EN } from './en.js';
+import { EN as EN_BASE } from './en.js';
+import { EN_EXTRA } from './en-extra.js';
+const EN = Object.assign({}, EN_EXTRA, EN_BASE);
 import { storage } from './storage.js';
 
 export const LANGS = [['tr', 'Türkçe'], ['en', 'English']];

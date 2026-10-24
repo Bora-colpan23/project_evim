@@ -2,10 +2,12 @@ import { useRef } from 'react';
 import { Linking, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { t } from '../domain/i18n';
+import { t, getLang, setLang } from '../domain/i18n';
+import { useLangTick } from '../app-ui/hooks';
 import { CONFIG } from '../domain/config';
 import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
+import { useAuth } from '../auth/auth';
 import { features, more, planPoints, plans } from './content';
 
 const enter = (i: number) => FadeInDown.delay(80 + i * 70).springify().damping(22).stiffness(120);
@@ -25,6 +27,7 @@ function Logo({ onDark }: { onDark?: boolean }) {
 function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
   const c = useColors();
   const { phone } = useBreakpoint();
+  const { user } = useAuth();
   return (
     <View style={{ borderBottomWidth: 1, borderBottomColor: c.line, backgroundColor: c.bg }}>
       <Container style={{ minHeight: 68, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -39,8 +42,10 @@ function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) 
           </View>
         )}
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-          <Button kind="quiet" title={t('Giriş yap')} onPress={() => go('/giris')} />
-          <Button kind="dark" title={t('Kayıt ol')} onPress={() => go('/kayit')} />
+          {user ? <Button kind="dark" title={t('Uygulamayı aç')} onPress={() => go('/uygulama')} /> : <>
+            <Button kind="quiet" title={t('Giriş yap')} onPress={() => go('/giris')} />
+            <Button kind="dark" title={t('Kayıt ol')} onPress={() => go('/kayit')} />
+          </>}
         </View>
       </Container>
     </View>
@@ -221,12 +226,18 @@ function Contact({ onLayout }: { onLayout: (y: number) => void }) {
 
 function Footer() {
   const c = useColors();
+  const lang = getLang();
   const items: [string, string][] = [[t('Kullanım Koşulları'), CONFIG.legal.terms], [t('Gizlilik ve KVKK'), CONFIG.legal.privacy], [t('Hesap silme'), CONFIG.legal.deletion]];
   return (
     <View style={{ backgroundColor: c.hero, borderTopWidth: 1, borderTopColor: '#34302a' }}>
       <Container style={{ paddingVertical: 28, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'center' }}>
         <Logo onDark />
-        <View style={{ flexDirection: 'row', gap: 22, flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', gap: 22, flexWrap: 'wrap', alignItems: 'center' }}>
+          {[['tr', 'Türkçe'], ['en', 'English']].map(([code, name]) => (
+            <PressScale key={code} accessibilityRole="button" accessibilityState={{ selected: lang === code }} onPress={() => { setLang(code); if (typeof location !== 'undefined') location.reload(); }} style={{ paddingVertical: 8 }}>
+              <Text v="small" color={lang === code ? c.heroInk : c.heroMuted} style={{ fontFamily: lang === code ? fonts.bodyXBold : fonts.body }}>{name}</Text>
+            </PressScale>
+          ))}
           {items.map(([l, u]) => (
             <PressScale key={u} accessibilityRole="link" onPress={() => Linking.openURL(u)} style={{ paddingVertical: 8 }}>
               <Text v="small" color={c.heroMuted}>{l}</Text>
@@ -239,6 +250,7 @@ function Footer() {
 }
 
 export default function Landing() {
+  useLangTick();
   const router = useRouter();
   const ref = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const ys = useRef<Record<string, number>>({});

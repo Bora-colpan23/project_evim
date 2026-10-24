@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { S, subscribe, snapshot } from '../domain/state';
 import { useColorScheme, useWindowDimensions } from 'react-native';
 
 export const light = {
@@ -31,9 +32,12 @@ export const space = (n: number) => n * 4;
 /** Tema: ilk çizim açık (statik HTML ile aynı), bağlanınca sistem temasına geçer. */
 export function useColors(): Colors {
   const scheme = useColorScheme();
+  useSyncExternalStore(subscribe, snapshot, snapshot);
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  return mounted && scheme === 'dark' ? dark : light;
+  if (!mounted) return light;
+  const pref = (S as any).theme;
+  return pref === 'dark' || (pref !== 'light' && scheme === 'dark') ? dark : light;
 }
 
 /** Kırılım noktaları: telefon < 720 ≤ tablet < 1080 ≤ masaüstü.

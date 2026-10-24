@@ -84,7 +84,7 @@ function NumSetting({ label, k, min, max }: { label: string; k: string; min: num
 function SettingsSheet({ close }: { close: () => void }) {
   useStore();
   const { open } = useSheet();
-  const { user, signOut } = useAuth();
+  const { user, signOut, deleteAccount } = useAuth();
   const router = useRouter();
   const s = S.settings;
   return (
@@ -109,12 +109,16 @@ function SettingsSheet({ close }: { close: () => void }) {
       <H2>{t('Hesap')}</H2>
       <Card gap={4}><KV k={t('E-posta')} v={user?.email || ''} /><KV k={t('Hesap türü')} v={ui.role === 'landlord' ? t('Mülk sahibi') : t('Kiracı')} /></Card>
       <Button kind="ghost" block title={t('Çıkış yap')} onPress={async () => { close(); await signOut(); router.replace('/'); }} />
+      <Button kind="quiet" block title={t('Hesabı sil')} onPress={async () => {
+        if (!await host.ask({ title: t('Hesabın silinsin mi?'), body: t('Hesabın ve bu cihazdaki tüm verilerin kalıcı olarak silinir.'), ok: t('Hesabı sil'), danger: true })) return;
+        close(); await deleteAccount(); router.replace('/');
+      }} />
       <H2>{t('Yardım ve yasal')}</H2>
       <Button kind="ghost" block title={t('Destek: {email}', { email: CONFIG.supportEmail })} icon={<Icon name="chat" size={15} />} onPress={() => Linking.openURL('mailto:' + CONFIG.supportEmail).catch(() => {})} />
       <Button kind="ghost" block title={t('Sık sorulanlar')} onPress={() => Linking.openURL(CONFIG.legal.support)} />
       <Button kind="ghost" block title={t('Kullanım ve abonelik koşulları')} onPress={() => Linking.openURL(CONFIG.legal.terms)} />
       <Button kind="ghost" block title={t('Gizlilik ve KVKK aydınlatma metni')} onPress={() => Linking.openURL(CONFIG.legal.privacy)} />
-      <Button kind="ghost" block title={t('Hesabı silme')} onPress={() => Linking.openURL(CONFIG.legal.deletion)} />
+      <Button kind="ghost" block title={t('Hesap silme bilgisi')} onPress={() => Linking.openURL(CONFIG.legal.deletion)} />
       <Muted>{t('Veriler yalnızca bu cihazda saklanır.')}</Muted>
     </Stack>
   );

@@ -38,6 +38,7 @@ type Ctx = {
   signUp(a: { name: string; email: string; password: string; role: Role }): Promise<string | null>;
   reset(email: string): Promise<string | null>;
   signOut(): Promise<void>;
+  deleteAccount(): Promise<void>;
 };
 const AuthCtx = createContext<Ctx>(null as unknown as Ctx);
 export const useAuth = () => useContext(AuthCtx);
@@ -138,6 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     closeLocal(); ui.role = 'tenant'; setUser(null);
   }, []);
 
-  const value = useMemo(() => ({ user, ready, live: LIVE, signIn, signUp, reset, signOut }), [user, ready, signIn, signUp, reset, signOut]);
+  /** Hesabı ve bu cihazdaki verisini siler (mağaza kuralı: uygulama içinden hesap silme). */
+  const deleteAccount = useCallback(async () => {
+    const id = user?.id;
+    if (id) {
+      storage.setItem(ACCOUNTS, JSON.stringify(readAccounts().filter((x) => x.id !== id)));
+      storage.removeItem('kiracim-veri-' + id);
+    }
+    await signOut();
+  }, [user, signOut]);
+
+  const value = useMemo(() => ({ user, ready, live: LIVE, signIn, signUp, reset, signOut, deleteAccount }), [user, ready, signIn, signUp, reset, signOut, deleteAccount]);
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }

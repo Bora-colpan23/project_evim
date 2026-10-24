@@ -208,3 +208,33 @@ test('kayıt ayrı: mülk sahibi kaydı rol seçtirmeden mülk sahibi hesabı a�
   const d = await db(page);
   expect(d.tables.profiles.find(p => p.name === 'Yeni Mülk Sahibi').role).toBe('landlord');
 });
+
+test('yazışmaya fotoğraf eklenir; karşı taraf fotoğrafı mesajda görür', async ({ page }) => {
+  await login(page, 'kiraci@ornek.com');
+  await page.goto(url('/uygulama/mesajlar'));
+  const chooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Fotoğraf ekle' }).click();
+  await (await chooser).setFiles(PNG);
+  await expect(page.getByText('dekont.png')).toBeVisible();     // eklenen fotoğrafın adı önizlemede
+  await page.getByRole('button', { name: 'Gönder' }).click();
+  await expect(page.getByLabel('Fotoğrafı büyüt')).toBeVisible();
+  await expect.poll(async () => (await db(page)).tables.messages.filter(m => m.image_path).length).toBe(1);
+  const m = (await db(page)).tables.messages.find(x => x.image_path);
+  expect(m.image_path).toMatch(/^p1\/.+\.jpg$/);
+  expect((await db(page)).tables.reviews).toHaveLength(0);       // fotoğraf yönetici denetimine girmez
+
+  await login(page, 'ev@ornek.com');
+  await page.goto(url('/uygulama/mulk?pid=p1&sub=mesaj'));
+  await expect(page.getByLabel('Fotoğrafı büyüt')).toBeVisible();
+  await page.getByLabel('Fotoğrafı büyüt').click();
+  await expect(page.getByLabel('Fotoğraf', { exact: true })).toBeVisible();
+});
+
+test('ana sayfa üst menüsü oturum açıkken de "Giriş yap" ve "Kayıt ol" gösterir', async ({ page }) => {
+  await login(page, 'kiraci@ornek.com');
+  await expect(page).toHaveURL(/\/uygulama$/);
+  await page.goto(url('/'));
+  await expect(page.getByRole('button', { name: 'Giriş yap' }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Kayıt ol' }).first()).toBeVisible();
+  await expect(page.getByText('Uygulamayı aç')).toHaveCount(0);
+});

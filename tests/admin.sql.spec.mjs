@@ -205,3 +205,17 @@ test('yönetici olmayan admin_users çağıramaz ve başkasının evini göremez
   expect(await q(`select * from public.properties`)).toEqual([]);
   expect(await q(`select * from public.reviews`)).toEqual([]);
 });
+
+test('yazışmaya eklenen fotoğraf: evin üyeleri görür, dışarıdan biri göremez, bildirim metni olur', async () => {
+  await putFile('p1/ariza.jpg', T);
+  await as(T);
+  await db.query(`insert into public.messages (id, property_id, from_role, body, image_path) values ('m-foto', 'p1', 'tenant', '', 'p1/ariza.jpg')`);
+  expect((await q(`select image_path from public.messages where id = 'm-foto'`))[0].image_path).toBe('p1/ariza.jpg');
+  expect(await canRead(L, 'p1/ariza.jpg')).toBe(true);        // mülk sahibi görür
+  expect(await canRead(X, 'p1/ariza.jpg')).toBe(false);       // evin üyesi olmayan göremez
+  await as(L);
+  expect((await q(`select image_path from public.messages where id = 'm-foto'`)).length).toBe(1);
+  await as(null);
+  const n = await q(`select body from public.notifications where user_id = $1 order by id desc limit 1`, [L]);
+  expect(n[0].body).toBe('Fotoğraf gönderdi');
+});

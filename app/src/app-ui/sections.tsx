@@ -1,6 +1,6 @@
 /* Ekran bölümleri: views.js'in React karşılığı (aynı veri, aynı kurallar). */
 import { useState } from 'react';
-import { Linking, Pressable, TextInput, View } from 'react-native';
+import { Image, Linking, Pressable, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { S, ui, STEPS, CONDITIONS, docCatsFor, isCommercial } from '../domain/state';
 import { estimate, stopajRate } from '../domain/tax';
@@ -19,7 +19,8 @@ import {
 } from './blocks';
 import { Toggle } from './forms';
 import { MonthWindows } from '../ui/Facade';
-import { pickImages, takePhoto } from './media';
+import { Picked, pickImages, takePhoto } from './media';
+import { mediaSrc } from '../domain/backend';
 import { useSheet } from './overlays';
 import { Platform } from 'react-native';
 
@@ -226,9 +227,15 @@ export function SecMsg({ p }: { p: any }) {
   const c = useColors();
   const o: any = otherPerson(p);
   const [text, setText] = useState('');
+  const [photo, setPhoto] = useState<Picked | null>(null);
+  const { open } = useSheet();
   const send = async () => {
     const { submit } = await import('../domain/services');
-    if (await submit('msg', { pid: p.id, text })) setText('');
+    if (await submit('msg', { pid: p.id, text, files: photo ? [photo] : [] })) { setText(''); setPhoto(null); }
+  };
+  const attach = async (camera?: boolean) => {
+    const f = camera ? await takePhoto() : await pickImages(1);
+    if (f[0]) setPhoto(f[0]);
   };
   let lastDay = '';
   return (
@@ -252,14 +259,28 @@ export function SecMsg({ p }: { p: any }) {
               {sep}
               <View style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: mine ? c.ink : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.line, borderRadius: 20, borderBottomRightRadius: mine ? 6 : 20, borderBottomLeftRadius: mine ? 20 : 6, paddingHorizontal: 14, paddingVertical: 10, gap: 2 }}>
                 {who ? <Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyXBold }}>{who}</Text> : null}
-                <Text v="body" color={mine ? c.bg : c.ink} style={{ fontSize: 15, lineHeight: 21 }}>{m.text}</Text>
+                {m.img ? (
+                  <PressScale onPress={() => open('foto', { src: m.img })} accessibilityRole="imagebutton" accessibilityLabel={t('Fotoğrafı büyüt')} scaleTo={0.98}>
+                    <Image source={{ uri: mediaSrc(m.img) }} style={{ width: 220, height: 220, borderRadius: 14, backgroundColor: c.surface2, maxWidth: '100%' }} resizeMode="cover" />
+                  </PressScale>
+                ) : null}
+                {m.text ? <Text v="body" color={mine ? c.bg : c.ink} style={{ fontSize: 15, lineHeight: 21 }}>{m.text}</Text> : null}
                 <Text v="small" color={mine ? c.heroMuted : c.muted} style={{ fontSize: 11, alignSelf: 'flex-end' }}>{tm(m.at)}</Text>
               </View>
             </View>
           );
         })}
       </View>
+      {photo ? (
+        <Row>
+          {photo.dataUrl ? <Image source={{ uri: photo.dataUrl }} style={{ width: 64, height: 64, borderRadius: 12 }} accessibilityLabel={t('Eklenen fotoğraf')} /> : null}
+          <Muted style={{ flex: 1 }}>{photo.name}</Muted>
+          <IconBtn name="x" size={16} label={t('Fotoğrafı kaldır')} onPress={() => setPhoto(null)} />
+        </Row>
+      ) : null}
       <Row>
+        {Platform.OS !== 'web' ? <IconBtn name="cam" label={t('Kamerayla çek')} onPress={() => attach(true)} /> : null}
+        <IconBtn name={Platform.OS !== 'web' ? 'doc' : 'cam'} label={t('Fotoğraf ekle')} onPress={() => attach(false)} />
         <TextInput value={text} onChangeText={setText} onSubmitEditing={send} placeholder={t('Mesaj yaz')} placeholderTextColor={c.muted} accessibilityLabel={t('Mesaj')}
           style={[{ flex: 1, minHeight: 50, borderRadius: radius.pill, paddingHorizontal: 18, backgroundColor: c.surface, borderWidth: 1.5, borderColor: c.line, color: c.ink, fontFamily: fonts.body, fontSize: 16 }, { outlineStyle: 'none' } as any]} />
         <PressScale onPress={send} accessibilityRole="button" accessibilityLabel={t('Gönder')} style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>

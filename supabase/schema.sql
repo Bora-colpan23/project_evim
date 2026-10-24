@@ -150,6 +150,8 @@ create table if not exists public.messages (
   body        text not null,
   at          timestamptz not null default now()
 );
+-- Yazışmaya eklenen fotoğraf (depo yolu). Yalnızca evin üyeleri görür.
+alter table public.messages add column if not exists image_path text;
 
 create table if not exists public.documents (
   id          text primary key,
@@ -707,7 +709,7 @@ declare sender text;
 begin
   if new.from_role = 'system' then return new; end if;
   select display_name into sender from public.memberships where property_id = new.property_id and user_id = new.by_user;
-  perform public.notify_members(new.property_id, null, coalesce(nullif(sender, ''), 'Yeni mesaj'), new.body,
+  perform public.notify_members(new.property_id, null, coalesce(nullif(sender, ''), 'Yeni mesaj'), coalesce(nullif(new.body, ''), 'Fotoğraf gönderdi'),
     '#/kiraci/mesajlar', '#/mulk-sahibi/mulk/' || new.property_id || '/mesaj', new.by_user);
   return new;
 end $$;

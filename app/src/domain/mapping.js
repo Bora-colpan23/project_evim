@@ -73,7 +73,8 @@ export function buildProperty(d){
       photos: r.photos || 0, shots: r.shots || [], log: r.log || [], quotes: r.quotes || [], invoice: r.invoice || null
     })).sort((a, b) => a.date === b.date ? (a.id < b.id ? 1 : -1) : (a.date < b.date ? 1 : -1)),
     msgs: (d.messages || []).map(m => clean({
-      id: m.id, from: m.from_role, by: m.by_user || undefined, text: m.body, at: ms(m.at)
+      id: m.id, from: m.from_role, by: m.by_user || undefined, text: m.body, at: ms(m.at),
+      img: m.image_path ? SB + m.image_path : undefined
     })).sort((a, b) => a.at - b.at),
     docs: (d.documents || []).map(x => clean({
       id: x.id, cat: x.cat, name: x.name, at: x.uploaded_on, until: x.until || undefined, path: x.path || undefined
@@ -137,7 +138,7 @@ export function requestRow(pid, r){
 }
 
 export function messageRow(pid, m, meId){
-  return { id: m.id, property_id: pid, from_role: m.from, by_user: meId, body: m.text, at: isoTs(m.at) };
+  return { id: m.id, property_id: pid, from_role: m.from, by_user: meId, body: m.text || '', at: isoTs(m.at), image_path: storedPath(m.img) };
 }
 
 export function documentRow(pid, d){
@@ -250,6 +251,7 @@ export function pendingMedia(p){
   (p.requests || []).forEach(r => (r.shots || []).forEach((_, i) => visit(r.shots, i)));
   (p.inspect?.rooms || []).forEach(r => (r.shots || []).forEach((_, i) => visit(r.shots, i)));
   (p.moveOut?.rooms || []).forEach(r => (r.shots || []).forEach((_, i) => visit(r.shots, i)));
+  (p.msgs || []).forEach(m => visit(m, 'img'));
   return out;
 }
 
@@ -261,5 +263,6 @@ export function storedPaths(p){
   (p.requests || []).forEach(r => (r.shots || []).forEach(add));
   (p.inspect?.rooms || []).forEach(r => (r.shots || []).forEach(add));
   (p.moveOut?.rooms || []).forEach(r => (r.shots || []).forEach(add));
+  (p.msgs || []).forEach(m => add(m.img));
   return [...out];
 }

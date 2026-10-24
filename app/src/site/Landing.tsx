@@ -11,7 +11,6 @@ import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
 import { MonthStrip } from '../ui/Facade';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
-import { useAuth } from '../auth/auth';
 import { useLangTick } from '../app-ui/hooks';
 import { Steps } from '../app-ui/blocks';
 import { features, more, planPoints, plans } from './content';
@@ -33,12 +32,11 @@ function Logo({ onDark, animate }: { onDark?: boolean; animate?: boolean }) {
 function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
   const c = useColors();
   const { phone } = useBreakpoint();
-  const { user } = useAuth();
   return (
     <View style={{ paddingTop: 14, paddingBottom: 6, backgroundColor: c.cream }}>
       <Container>
-        <View style={{ minHeight: 64, borderRadius: radius.pill, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, paddingLeft: 22, paddingRight: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Logo animate />
+        <View style={{ minHeight: 64, borderRadius: radius.pill, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, paddingLeft: phone ? 14 : 22, paddingRight: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          {phone ? <Wordmark size={22} animate /> : <Logo animate />}
           {!phone && (
             <View style={{ flexDirection: 'row', gap: 6 }}>
               {[['ozellikler', t('Özellikler')], ['fiyat', t('Fiyatlar')], ['iletisim', t('İletişim')]].map(([k, l]) => (
@@ -49,10 +47,8 @@ function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) 
             </View>
           )}
           <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-            {user ? <Button title={t('Uygulamayı aç')} onPress={() => go('/uygulama')} /> : <>
-              {!phone && <Button kind="quiet" title={t('Giriş yap')} onPress={() => go('/giris')} />}
-              <Button title={t('Kayıt ol')} onPress={() => go('/kayit')} />
-            </>}
+            <Button kind="quiet" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
+            <Button title={t('Kayıt ol')} onPress={() => go('/kayit')} style={phone ? { paddingHorizontal: 14, minHeight: 44 } : undefined} />
           </View>
         </View>
       </Container>
@@ -454,7 +450,6 @@ export default function Landing() {
   const ys = useRef<Record<string, number>>({});
   const go = (p: string) => router.push(p as any);
   const scrollTo = (k: string) => ref.current?.scrollTo({ y: Math.max(0, (ys.current[k] ?? 0) - 90), animated: true });
-  const { user } = useAuth();
   return (
     <View style={{ flex: 1 }}>
     <ScrollView ref={ref} style={{ flex: 1, backgroundColor: c.cream }} contentContainerStyle={{ flexGrow: 1 }} stickyHeaderIndices={[0]}>
@@ -469,7 +464,7 @@ export default function Landing() {
       <Footer />
     </ScrollView>
     <View pointerEvents="box-none" style={{ position: 'absolute', right: 18, bottom: 18 }}>
-      <Button kind="dark" title={user ? t('Uygulamayı aç') : t('Ücretsiz başla')} onPress={() => go(user ? '/uygulama' : '/kayit')} style={{ minHeight: 48, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }} />
+      <Button kind="dark" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 48, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }} />
     </View>
     </View>
   );

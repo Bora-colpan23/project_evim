@@ -1,6 +1,6 @@
 /* Alt sayfalar (sheet). Her biri tek bir form ya da görünüm; kayıt işlemleri services.js'te. */
 import { ReactNode, useEffect, useState } from 'react';
-import { Linking, Pressable, Share, TextInput, View } from 'react-native';
+import { Image, Linking, Pressable, Share, TextInput, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import {
@@ -453,6 +453,17 @@ function AddTenantSheet({ pid, close }: { pid?: string; close: () => void }) {
   );
 }
 
+function PhotoSheet({ src }: { src?: string }) {
+  const c = useColors();
+  useStore();
+  if (!src) return null;
+  return (
+    <Stack>
+      <Image source={{ uri: mediaSrc(src) }} accessibilityLabel={t('Fotoğraf')} resizeMode="contain" style={{ width: '100%', aspectRatio: 1, borderRadius: radius.md, backgroundColor: c.surface2 }} />
+    </Stack>
+  );
+}
+
 function InviteSheet({ pid, code }: { pid?: string; code?: string }) {
   const p = propOf(pid);
   const c = useColors();
@@ -616,6 +627,7 @@ export function renderSheet(name: string, p: any, close: () => void): ReactNode 
     case 'ev-ekle': return <AddPropSheet close={close} />;
     case 'ev-duzenle': return <EditPropSheet pid={p.pid} close={close} />;
     case 'kiraci-ekle': return <AddTenantSheet pid={p.pid} close={close} />;
+    case 'foto': return <PhotoSheet src={p.src} />;
     case 'davet-paylas': return <InviteSheet pid={p.pid} code={p.code} />;
     case 'belge': return <UploadSheet pid={p.pid} cat={p.cat} close={close} />;
     case 'gider': return <ExpenseSheet pid={p.pid} id={p.id} close={close} />;

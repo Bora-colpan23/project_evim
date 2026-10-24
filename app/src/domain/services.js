@@ -223,7 +223,7 @@ export const A = {
   exportChat: d => {
     const p = P(d.pid);
     const body = p.name+' · '+p.addr+'\n\n' + p.msgs.map(m =>
-      new Date(m.at).toLocaleString(locale())+' · '+senderName(p, m)+': '+m.text).join('\n');
+      new Date(m.at).toLocaleString(locale())+' · '+senderName(p, m)+': '+(m.text || '')+(m.img ? ' ['+t('fotoğraf')+']' : '')).join('\n');
     openText(t('Yazışma dökümü'), body);
   },
 
@@ -447,8 +447,9 @@ export async function submit(type, v){
 
   if (type === 'msg'){
     const text = String(fd.get('text') || '').trim();
-    if (!text) return false;
-    pushMsg(p, { from: ui.role, by: ui.role === 'tenant' ? meTenant(p)?.id : undefined, text, at: Date.now() });
+    const img = files.length ? await keep(p.id, files[0]) : null;
+    if (!text && !img) return false;
+    pushMsg(p, Object.assign({ from: ui.role, by: ui.role === 'tenant' ? meTenant(p)?.id : undefined, text, at: Date.now() }, img ? { img } : {}));
     save();
     return true;
   }

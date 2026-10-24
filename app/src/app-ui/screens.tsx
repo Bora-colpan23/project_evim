@@ -11,7 +11,7 @@ import { t } from '../domain/i18n';
 import { act } from '../domain/services';
 import { access, trialDaysLeft } from '../domain/billing';
 import { tl, fmt, fmtFull, monthYear, parse, t0, iso, daysTo, up, percent } from '../domain/util';
-import { Button, Chip, Text } from '../ui/kit';
+import { Button, Chip, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import {
   Avatar, Bar, Big, Card, Empty, H2, Hero, Icon, IconBtn, Items, KV, Label, LI, Mid, Muted, Note, Row, Seg, Stack, StatusChip, initials, toneOf, typeIcon
@@ -36,7 +36,7 @@ export function Page({ title, sub, back, children }: { title: string; sub?: stri
         <Row align="flex-start" style={{ flex: 1 }}>
           {back ? <IconBtn name="back" label={t('Geri')} onPress={() => go(back)} /> : null}
           <View style={{ flex: 1, gap: 2 }}>
-            <Text v="h1" style={{ fontSize: 30, lineHeight: 34 }}>{title}</Text>
+            <Text v="h1" style={{ fontSize: 36, lineHeight: 38, letterSpacing: -1.2 }}>{title}</Text>
             {sub ? <Muted>{sub}</Muted> : null}
           </View>
         </Row>
@@ -87,6 +87,7 @@ export function TenantPanel() {
   useStore();
   const { open } = useSheet();
   const go = useGo();
+  const colors = useColors();
   const p = P(S.myHome);
   if (!p) return <Page title={t('Panel')}><Empty>{t('Henüz bağlı bir mülk yok.')}</Empty></Page>;
   const o = p.landlord;
@@ -108,10 +109,12 @@ export function TenantPanel() {
       <RenewalCard p={p} />
       {p.moveOut && !p.moveOut.refunded ? <MoveOutTeaser p={p} to="/kiraci/belgeler/cikis" /> : null}
       <Row wrap gap={10}>
-        {qa.map(([label, icon, fn]) => (
-          <Card key={label} onPress={fn} style={{ flexGrow: 1, flexBasis: '45%', alignItems: 'center', paddingVertical: 16 }} gap={6}>
-            <Icon name={icon} size={22} /><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{label}</Text>
-          </Card>
+        {qa.map(([label, icon, fn], i) => (
+          <PressScale key={label} onPress={fn} accessibilityRole="button" scaleTo={0.96} wrapStyle={{ flexGrow: 1, flexBasis: '45%' }}
+            style={{ backgroundColor: [colors.peach, colors.butter, colors.sage, colors.sky][i % 4], borderRadius: 30, padding: 18, minHeight: 112, justifyContent: 'space-between' }}>
+            <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} size={20} /></View>
+            <Text v="small" style={{ fontFamily: fonts.bodyXBold, fontSize: 15 }}>{label}</Text>
+          </PressScale>
         ))}
       </Row>
       <AgendaSection p={p} />

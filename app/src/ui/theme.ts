@@ -3,12 +3,12 @@ import { S, subscribe, snapshot } from '../domain/state';
 import { useColorScheme, useWindowDimensions } from 'react-native';
 
 export const light = {
-  bg: '#F6F5F2', surface: '#FFFFFF', surface2: '#EFEDE8', line: '#E4E1DA',
+  bg: '#FBF6EE', surface: '#FFFFFF', surface2: '#F3EBDD', line: '#EADFCF',
   ink: '#1B1A17', muted: '#68635A', accent: '#A8492A', accentInk: '#FFFFFF', accentSoft: '#F6E3DA',
   hero: '#1B1A17', heroInk: '#F6F5F2', heroMuted: '#B9B3A8',
   okBg: '#E1EEDD', okInk: '#2B5A33', badBg: '#F7D9D2', badInk: '#862A19', warnBg: '#F6E8C8', warnInk: '#6B4A0B',
   shadow: 'rgba(27,26,23,0.10)',
-  peach: '#F7D9C9', butter: '#F7E6A8', sage: '#D7E8D2', sky: '#D6E7F6', cream: '#FBF6EE', deepA: '#3A1A12', deepB: '#7A2F18'
+  peach: '#F7D9C9', butter: '#F7E6A8', sage: '#D4EFE3', sky: '#D6E7F6', rose: '#F6D6DF', cream: '#FBF6EE', deepA: '#3A1A12', deepB: '#7A2F18'
 };
 export const dark: typeof light = {
   bg: '#141311', surface: '#1D1B18', surface2: '#27241F', line: '#34302A',
@@ -16,13 +16,13 @@ export const dark: typeof light = {
   hero: '#1D1B18', heroInk: '#F1EDE5', heroMuted: '#A9A196',
   okBg: '#223326', okInk: '#BEE0C3', badBg: '#44241D', badInk: '#F4C0B3', warnBg: '#3F3217', warnInk: '#F0D79B',
   shadow: 'rgba(0,0,0,0.45)',
-  peach: '#4A3025', butter: '#4A4020', sage: '#27382A', sky: '#24364A', cream: '#1D1B18', deepA: '#2A120C', deepB: '#6A2814'
+  peach: '#4A3025', butter: '#4A4020', sage: '#234038', sky: '#24364A', rose: '#4A2A33', cream: '#1D1B18', deepA: '#2A120C', deepB: '#6A2814'
 };
 export type Colors = typeof light;
 
 export const fonts = {
-  display: 'BricolageGrotesque_700Bold',
-  displayMid: 'BricolageGrotesque_600SemiBold',
+  display: 'Outfit_700Bold',
+  displayMid: 'Outfit_600SemiBold',
   body: 'Manrope_500Medium',
   bodyBold: 'Manrope_700Bold',
   bodyXBold: 'Manrope_800ExtraBold',
@@ -30,7 +30,7 @@ export const fonts = {
   siteBold: 'Outfit_700Bold'
 };
 
-export const radius = { sm: 10, md: 16, lg: 24, xl: 32, pill: 999 };
+export const radius = { sm: 12, md: 20, lg: 30, xl: 40, pill: 999 };
 export const space = (n: number) => n * 4;
 
 /** Tema: ilk çizim açık (statik HTML ile aynı), bağlanınca sistem temasına geçer. */

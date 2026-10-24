@@ -11,7 +11,7 @@ import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { useAuth } from '../auth/auth';
 import { useLangTick } from '../app-ui/hooks';
-import { Steps } from '../app-ui/blocks';
+import { Icon, Steps } from '../app-ui/blocks';
 import { features, more, planPoints, plans } from './content';
 
 const enter = (i: number) => FadeInDown.delay(60 + i * 80).springify().damping(22).stiffness(120);
@@ -258,6 +258,67 @@ function Features({ onLayout }: { onLayout: (y: number) => void }) {
   );
 }
 
+
+/** Marka sistemi şeridi: ikon takımı, ok desenli yazı, etiketli dev sözcük ve iki telefon (kiracı / mülk sahibi). */
+function Phone({ children, tilt = 0 }: { children: any; tilt?: number }) {
+  const c = useColors();
+  return (
+    <View style={{ width: 230, borderRadius: 40, backgroundColor: c.surface, borderWidth: 6, borderColor: c.ink, padding: 12, gap: 10, transform: [{ rotate: tilt + 'deg' }], overflow: 'hidden' }}>
+      <View style={{ alignSelf: 'center', width: 70, height: 18, borderRadius: 9, backgroundColor: c.ink }} />
+      {children}
+    </View>
+  );
+}
+
+function System() {
+  const c = useColors();
+  const { desktop, phone } = useBreakpoint();
+  const icons = ['home', 'card', 'wrench', 'chat', 'doc', 'chart', 'bell', 'phone', 'calendar', 'key', 'search', 'gear'];
+  const tag = (label: string, bg: string, fg: string, top: number, left: string, rot: number) => (
+    <View style={{ position: 'absolute', top, left: left as any, backgroundColor: bg, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 8, transform: [{ rotate: rot + 'deg' }] }}>
+      <RNText style={{ fontFamily: fonts.siteBold, fontSize: 16, color: fg }}>{label}</RNText>
+    </View>
+  );
+  const rowsText = ['KİRA → ÖDEME →', 'ONAY → KİRA →', 'ÖDEME → ONAY →'];
+  return (
+    <Container style={{ paddingTop: phone ? 56 : 112, gap: 16 }}>
+      <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
+        <View style={{ flex: 1, backgroundColor: c.butter, borderRadius: 36, padding: 26, minHeight: 300, justifyContent: 'center' }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', rowGap: 22 }}>
+            {icons.map((n) => <View key={n} style={{ width: '25%', alignItems: 'center' }}><Icon name={n} size={34} color={c.accent} /></View>)}
+          </View>
+        </View>
+        <View style={{ flex: 1.5, backgroundColor: c.sage, borderRadius: 36, padding: 26, minHeight: 300, overflow: 'hidden', justifyContent: 'center' }}>
+          {rowsText.map((r, i) => <RNText key={i} numberOfLines={1} style={{ fontFamily: fonts.siteBold, fontSize: phone ? 40 : 64, lineHeight: phone ? 46 : 72, letterSpacing: -2, color: i === 1 ? c.accent : c.ink, marginLeft: i === 1 ? -30 : 0 }}>{r}</RNText>)}
+        </View>
+      </View>
+      <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
+        <View style={{ flex: 1.2, backgroundColor: c.sky, borderRadius: 36, minHeight: 300, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', padding: 26 }}>
+          <RNText style={{ fontFamily: fonts.siteBold, fontSize: phone ? 64 : 104, letterSpacing: -4, color: '#2A62C8' }}>kiracım</RNText>
+          {tag(t('Tek kayıt'), c.deepB, '#fff', 40, '8%', -4)}
+          {tag(t('İki taraf'), c.deepB, '#fff', 36, '62%', 3)}
+          {tag(t('Hatırlatma'), c.deepB, '#fff', 210, '34%', -2)}
+        </View>
+        <View style={{ flex: 1, backgroundColor: c.rose, borderRadius: 36, minHeight: 300, padding: 26, justifyContent: 'center' }}>
+          <D size={phone ? 26 : 34}>{t('Aynı kayıt, iki ekran. Kiracı kendi işini, mülk sahibi tüm portföyünü görür.')}</D>
+        </View>
+      </View>
+      <View style={{ backgroundColor: c.surface2, borderRadius: 40, paddingVertical: 34, paddingHorizontal: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 28, justifyContent: 'center', alignItems: 'flex-start', overflow: 'hidden' }}>
+        <Phone tilt={-2}>
+          <View style={{ backgroundColor: c.deepA, borderRadius: 24, padding: 16, gap: 4 }}><Text v="label" color="#E8B9A6">{t('Kiracı')}</Text><D size={32} color="#FFF3EA">₺32.500</D><Text v="small" color="#E8CFC2">{t('5 Kasım · 12 gün kaldı')}</Text></View>
+          <View style={{ backgroundColor: c.peach, borderRadius: 22, padding: 14, gap: 8 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Kombi basıncı düşüyor')}</Text><Steps status={2} labels={['', '', '', '']} /></View>
+          <View style={{ backgroundColor: c.sage, borderRadius: 22, padding: 14 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Dekont yükle')}</Text></View>
+        </Phone>
+        <Phone tilt={2}>
+          <View style={{ backgroundColor: c.deepA, borderRadius: 24, padding: 16, gap: 4 }}><Text v="label" color="#E8B9A6">{t('Mülk sahibi')}</Text><D size={32} color="#FFF3EA">%44</D><Text v="small" color="#E8CFC2">{t('beklenenin tahsil edilen kısmı')}</Text></View>
+          <View style={{ backgroundColor: c.butter, borderRadius: 22, padding: 14, gap: 4 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Net getiri')}</Text><D size={24}>₺1.628.350</D></View>
+          <View style={{ backgroundColor: c.sky, borderRadius: 22, padding: 14 }}><Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Vergi tahmini')}</Text></View>
+        </Phone>
+      </View>
+    </Container>
+  );
+}
+
 function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: number) => void }) {
   const c = useColors();
   const { desktop, phone } = useBreakpoint();
@@ -344,7 +405,7 @@ function Footer() {
   const lang = getLang();
   const items: [string, string][] = [[t('Kullanım Koşulları'), CONFIG.legal.terms], [t('Gizlilik ve KVKK'), CONFIG.legal.privacy], [t('Hesap silme'), CONFIG.legal.deletion]];
   return (
-    <Container style={{ paddingTop: 20, paddingBottom: 24 }}>
+    <Container style={{ paddingTop: 20, paddingBottom: 96 }}>
       <View style={{ backgroundColor: c.hero, borderRadius: 36, paddingHorizontal: 28, paddingVertical: 22, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16, alignItems: 'center' }}>
         <Logo onDark />
         <View style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -372,15 +433,22 @@ export default function Landing() {
   const ys = useRef<Record<string, number>>({});
   const go = (p: string) => router.push(p as any);
   const scrollTo = (k: string) => ref.current?.scrollTo({ y: Math.max(0, (ys.current[k] ?? 0) - 90), animated: true });
+  const { user } = useAuth();
   return (
+    <View style={{ flex: 1 }}>
     <ScrollView ref={ref} style={{ flex: 1, backgroundColor: c.cream }} contentContainerStyle={{ flexGrow: 1 }} stickyHeaderIndices={[0]}>
       <Nav go={go} scrollTo={scrollTo} />
       <Hero go={go} scrollTo={scrollTo} />
       <Words />
       <Features onLayout={(y) => (ys.current.ozellikler = y)} />
+      <System />
       <Pricing go={go} onLayout={(y) => (ys.current.fiyat = y)} />
       <Contact onLayout={(y) => (ys.current.iletisim = y)} />
       <Footer />
     </ScrollView>
+    <View pointerEvents="box-none" style={{ position: 'absolute', right: 18, bottom: 18 }}>
+      <Button kind="dark" title={user ? t('Uygulamayı aç') : t('Ücretsiz başla')} onPress={() => go(user ? '/uygulama' : '/kayit')} style={{ minHeight: 48, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }} />
+    </View>
+    </View>
   );
 }

@@ -53,7 +53,7 @@ function TabBar({ list }: { list: Item[] }) {
   const router = useRouter();
   const active = useActive();
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.line, paddingBottom: 8, paddingTop: 6, paddingHorizontal: 6 }}>
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 999, marginHorizontal: 12, marginBottom: 12, marginTop: 4, paddingVertical: 4, paddingHorizontal: 6, shadowColor: '#3A1A12', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } }}>
       {list.map((it) => {
         const on = active(it.path);
         return (
@@ -76,16 +76,16 @@ function SideNav({ list }: { list: Item[] }) {
   const { user } = useAuth();
   const active = useActive();
   return (
-    <View style={{ width: 264, backgroundColor: c.surface, borderRightWidth: 1, borderRightColor: c.line, padding: 20, gap: 6 }}>
+    <View style={{ width: 272, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 36, margin: 14, padding: 22, gap: 6 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 18 }}>
         <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 12, height: 12, borderWidth: 2.5, borderColor: c.accentInk, borderRadius: 3 }} /></View>
-        <Text v="h3">Kiracım</Text>
+        <Text v="h3" style={{ fontSize: 24 }}>kiracım</Text>
       </View>
       {list.map((it) => {
         const on = active(it.path);
         return (
           <PressScale key={it.path} onPress={() => router.push(it.path as any)} accessibilityRole="link" accessibilityState={{ selected: on }} scaleTo={0.98}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 46, borderRadius: radius.md, backgroundColor: on ? c.accentSoft : 'transparent' }}>
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 48, borderRadius: radius.pill, backgroundColor: on ? c.accentSoft : 'transparent' }}>
             <Icon name={it.icon} size={19} color={on ? c.accent : c.muted} />
             <Text v="small" color={on ? c.accent : c.ink} style={{ flex: 1, fontFamily: fonts.bodyXBold }}>{it.label}</Text>
             {it.badge ? <Text v="small" color={c.accent} style={{ fontFamily: fonts.bodyXBold }}>{it.badge}</Text> : null}

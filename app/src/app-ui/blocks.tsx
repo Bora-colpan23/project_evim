@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Pressable, ScrollView, StyleProp, View, ViewStyle, Image } from 'react-native';
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { SvgXml } from 'react-native-svg';
 import { I, ic } from '../domain/icons';
 import { ST } from '../domain/logic';
@@ -24,7 +25,7 @@ export function Row({ children, between, gap = 10, wrap, style, align = 'center'
 
 export function Card({ children, onPress, style, gap = 10 }: { children?: ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle>; gap?: number }) {
   const c = useColors();
-  const base: ViewStyle = { backgroundColor: c.surface, borderRadius: radius.lg, padding: 18, borderWidth: 1, borderColor: c.line, gap };
+  const base: ViewStyle = { backgroundColor: c.surface, borderRadius: radius.lg, padding: 20, borderWidth: 1, borderColor: c.line, gap };
   if (onPress) return <PressScale onPress={onPress} accessibilityRole="button" scaleTo={0.985} style={[base, style]}>{children}</PressScale>;
   return <View style={[base, style]}>{children}</View>;
 }
@@ -32,7 +33,17 @@ export function Card({ children, onPress, style, gap = 10 }: { children?: ReactN
 /** Koyu vurgu kartı (kira kartı, tahsilat özeti). */
 export function Hero({ children, style, gap = 12 }: { children?: ReactNode; style?: StyleProp<ViewStyle>; gap?: number }) {
   const c = useColors();
-  return <View style={[{ backgroundColor: c.hero, borderRadius: radius.xl, padding: 22, gap }, style]}>{children}</View>;
+  return (
+    <View style={[{ backgroundColor: c.deepA, borderRadius: radius.xl, padding: 24, gap, overflow: 'hidden' }, style]}>
+      <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 400 300" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="none">
+        <Defs><LinearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor={c.deepA} /><Stop offset="1" stopColor={c.deepB} /></LinearGradient></Defs>
+        <Rect width="400" height="300" fill="url(#hg)" />
+        <Path d="M-10 230 C 90 190, 180 270, 300 215 S 390 190, 420 205" stroke="#fff" strokeOpacity={0.13} strokeWidth={1.5} fill="none" />
+        <Path d="M250 -10 C 300 60, 230 120, 330 190" stroke="#fff" strokeOpacity={0.1} strokeWidth={1.5} fill="none" />
+      </Svg>
+      {children}
+    </View>
+  );
 }
 
 export function H2({ children, onDark }: { children: ReactNode; onDark?: boolean }) {

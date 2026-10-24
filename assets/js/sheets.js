@@ -143,6 +143,12 @@ function settingsSheet(){
         ('<label class="btn small ghost" style="cursor:pointer">'+t('Veri içe aktar')+'<input type="file" accept="application/json" class="sr" data-input="importData"></label>') +
         ('<button class="btn small danger" data-act="reset">'+t('Demo verisini sıfırla')+'</button>')) +
     '</div>' +
+    ('<h2 style="margin:18px 0 8px">'+t('Yardım ve yasal')+'</h2><div class="stack" style="gap:8px">') +
+      '<a class="btn small ghost" href="mailto:'+esc(CONFIG.supportEmail)+'">'+ic('chat', 15)+' '+t('Destek: {email}', { email:esc(CONFIG.supportEmail) })+'</a>' +
+      '<a class="btn small ghost" href="'+esc(CONFIG.legal.support)+'" target="_blank" rel="noopener">'+t('Sık sorulanlar')+'</a>' +
+      '<a class="btn small ghost" href="'+esc(CONFIG.legal.terms)+'" target="_blank" rel="noopener">'+t('Kullanım ve abonelik koşulları')+'</a>' +
+      '<a class="btn small ghost" href="'+esc(CONFIG.legal.privacy)+'" target="_blank" rel="noopener">'+t('Gizlilik ve KVKK aydınlatma metni')+'</a>' +
+    '</div>' +
     '<p class="foot">'+(LIVE ? t('Verilerin sunucuda, yalnızca mülkün üyelerinin erişebileceği şekilde saklanır.') : t('Veriler yalnızca bu tarayıcıda saklanır.'))+'</p>';
 }
 
@@ -498,7 +504,7 @@ function accountSheet(){
     on:t('Açık — kira günü, dekont, talep ve mesajlar telefonuna gelir.'),
     off:t('Kapalı.'),
     denied:t('Tarayıcı ayarlarında engellenmiş. Site ayarlarından izin vermelisin.'),
-    install:t('iPhone’da bildirimler için önce Evim’i ana ekrana ekle (Paylaş → Ana Ekrana Ekle).'),
+    install:t('iPhone’da bildirimler için önce Kiracım’ı ana ekrana ekle (Paylaş → Ana Ekrana Ekle).'),
     unsupported:t('Bu tarayıcı anlık bildirimleri desteklemiyor.'),
     unknown:t('Kontrol ediliyor…')
   }[push];
@@ -580,7 +586,7 @@ function subscriptionSheet(){
     (Object.values(prices).some(Boolean) ? '' : '<div class="muted" style="font-size:12.5px">'+t('Fiyatlar mağaza hesapları bağlanınca burada görünür.')+'</div>') +
     (canPurchaseHere()
       ? '<button class="btn primary block" data-act="subscribe" data-v="'+esc(selected)+'">'+t('Abone ol')+'</button>'
-      : '<div class="note">'+t('Aboneliği Evim’in iPhone ya da Android uygulamasından başlatabilirsin; aynı hesapla web’de de geçerli olur.')+'</div>' +
+      : '<div class="note">'+t('Aboneliği Kiracım’ın iPhone ya da Android uygulamasından başlatabilirsin; aynı hesapla web’de de geçerli olur.')+'</div>' +
         ((CONFIG.billing.appStoreUrl || CONFIG.billing.playStoreUrl)
           ? '<div class="row" style="gap:8px">' +
               (CONFIG.billing.appStoreUrl ? '<a class="btn ghost" style="flex:1" href="'+esc(CONFIG.billing.appStoreUrl)+'" target="_blank" rel="noopener">App Store</a>' : '') +
@@ -620,7 +626,7 @@ function refreshLayerSoon(){
 function shareInviteSheet(p, code){
   if (!code) return null;
   const link = LIVE ? inviteLink(code) : location.origin + location.pathname + '#/katil/' + code;
-  const text = (t('Merhaba,')+' ')+p.name+(' '+t('için Evim’de ortak panelimize katılır mısın? Davet kodun:')+' ')+code+' — '+link;
+  const text = (t('Merhaba,')+' ')+p.name+(' '+t('için Kiracım’da ortak panelimize katılır mısın? Davet kodun:')+' ')+code+' — '+link;
   return ('<h3>'+t('Kiracını davet et')+'</h3><div class="stack">') +
     ('<div class="muted">'+t('Kiracın bu bağlantıyla kayıt olunca ya da kodu girince')+' ')+esc(p.name)+(' '+t('paneline bağlanır. Kod 30 gün geçerlidir.')+'</div>') +
     ('<div class="codebox" aria-label="'+t('Davet kodu')+'">')+esc(code)+'</div>' +
@@ -628,7 +634,7 @@ function shareInviteSheet(p, code){
     '<div class="grid2">' +
       '<button class="btn primary" data-act="copyInvite">'+ic('doc', 16)+(' '+t('Kopyala')+'</button>') +
       '<a class="btn ghost" href="https://wa.me/?text='+encodeURIComponent(text)+('" target="_blank" rel="noopener">'+t('WhatsApp')+'</a></div>') +
-    '<a class="btn ghost block" href="mailto:?subject='+encodeURIComponent(t('Evim daveti'))+'&body='+encodeURIComponent(text)+('">'+t('E-posta ile gönder')+'</a>') +
+    '<a class="btn ghost block" href="mailto:?subject='+encodeURIComponent(t('Kiracım daveti'))+'&body='+encodeURIComponent(text)+('">'+t('E-posta ile gönder')+'</a>') +
     (LIVE ? '' : ('<div class="note">'+t('Demo modunda davet gerçek değildir; kod yalnızca akışı göstermek içindir.')+'</div>')) +
     '</div>';
 }

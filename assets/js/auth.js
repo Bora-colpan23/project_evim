@@ -5,7 +5,7 @@
 
 import { t } from './i18n.js';
 import { S, ui } from './state.js';
-import { LIVE } from './config.js';
+import { LIVE, CONFIG } from './config.js';
 import { go, current } from './router.js';
 import { notify } from './notify.js';
 import { esc } from './util.js';
@@ -114,7 +114,7 @@ function langLinks(){
 
 function brand(sub){
   return '<div class="authbrand"><div class="mark">'+ic('home', 26)+'</div>' +
-    ('<div><div class="authname">'+t('Evim')+'</div><div class="muted">')+esc(sub)+'</div></div></div>';
+    ('<div><div class="authname">'+t('Kiracım')+'</div><div class="muted">')+esc(sub)+'</div></div></div>';
 }
 
 function message(){
@@ -187,7 +187,10 @@ function signupScreen(){
       ('<label class="field">'+t('E-posta')+'<input name="email" type="email" required autocomplete="email" inputmode="email"></label>') +
       ('<label class="field">'+t('Şifre')+'<input name="password" type="password" required autocomplete="new-password" minlength="8" aria-describedby="pwHint"></label>') +
       ('<div class="muted" id="pwHint" style="margin-top:-6px">'+t('En az 8 karakter.')+'</div>') +
-      ('<label class="check"><input type="checkbox" name="consent" required> <span>'+t('Kişisel verilerimin kira ilişkisinin yürütülmesi amacıyla işlenmesini, kira ilişkisinin karşı tarafıyla paylaşılmasını ve yurt dışındaki sunucularda saklanmasını kabul ediyorum (KVKK).')+'</span></label>') +
+      ('<label class="check"><input type="checkbox" name="consent" required> <span>'+t('{terms} kabul ediyorum; {privacy} okudum.', {
+          terms: '<a href="'+esc(CONFIG.legal.terms)+'" target="_blank" rel="noopener">'+t('Kullanım Koşulları’nı')+'</a>',
+          privacy: '<a href="'+esc(CONFIG.legal.privacy)+'" target="_blank" rel="noopener">'+t('Gizlilik ve KVKK Aydınlatma Metni’ni')+'</a>'
+        })+'</span></label>') +
       ('<button class="btn primary block">'+t('Hesap oluştur')+'</button>') +
     '</form>' +
     ('<div class="authalt">'+t('Hesabın var mı?')+' <button class="linkbtn" data-act="nav" data-go="/giris">'+t('Giriş yap')+'</button></div>') +
@@ -220,7 +223,7 @@ function joinScreen(route){
   const code = (route.code || '').toUpperCase();
   return '<div class="auth">' + brand(t('Davet')) +
     ('<h1>'+t('Kiraladığın mülke davet edildin')+'</h1>') +
-    ('<p class="muted">'+t('Mülk sahibin seni Evim’e davet etti. Hesabını oluştur ya da giriş yap; kiraladığın mülke otomatik bağlanacaksın.')+'</p>') +
+    ('<p class="muted">'+t('Mülk sahibin seni Kiracım’a davet etti. Hesabını oluştur ya da giriş yap; kiraladığın mülke otomatik bağlanacaksın.')+'</p>') +
     '<div class="codebox">'+esc(code)+'</div>' + message() +
     ('<button class="btn primary block" data-act="nav" data-go="/kayit">'+t('Kiracı hesabı oluştur')+'</button>') +
     ('<button class="btn ghost block" data-act="nav" data-go="/giris">'+t('Hesabım var, giriş yap')+'</button></div>');
@@ -230,7 +233,7 @@ function inviteCodeScreen(){
   const name = backend.live.profile?.name || '';
   return '<div class="auth">' + brand(name ? (t('Merhaba')+' ') + name : t('Hoş geldin')) +
     ('<h1>'+t('Mülkine bağlan')+'</h1>') +
-    ('<p class="muted">'+t('Mülk sahibinden aldığın davet kodunu gir. Kodu mülk sahibin Evim’de “Kiracı ekle” ile oluşturur.')+'</p>') +
+    ('<p class="muted">'+t('Mülk sahibinden aldığın davet kodunu gir. Kodu mülk sahibin Kiracım’da “Kiracı ekle” ile oluşturur.')+'</p>') +
     message() +
     '<form class="stack" data-form="join" novalidate>' +
       ('<label class="field">'+t('Davet kodu')+'<input name="code" required autocomplete="one-time-code" autocapitalize="characters" maxlength="12" style="text-transform:uppercase;letter-spacing:.12em;font-weight:800"></label>') +
@@ -295,7 +298,7 @@ export async function authSubmit(type, fd, form){
     if (!name) return fail(t('Adını yaz.'), form);
     if (!/^\S+@\S+\.\S+$/.test(email)) return fail(t('Geçerli bir e-posta adresi yaz.'), form);
     if (password.length < 8) return fail(t('Şifre en az 8 karakter olmalı.'), form);
-    if (!fd.get('consent')) return fail(t('Devam etmek için KVKK onayını işaretle.'), form);
+    if (!fd.get('consent')) return fail(t('Devam etmek için koşulları kabul ettiğini işaretle.'), form);
     busy(form, true, t('Hesap oluşturuluyor…'));
     try {
       const { needsConfirm } = await backend.signUp({ name, email, password, role });

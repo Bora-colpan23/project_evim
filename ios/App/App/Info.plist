@@ -27,11 +27,11 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Dekont, talep ve tutanak fotoğraflarını galeriden seçmek için.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Evim’i Face ID ile kilitleyip açabilmen için.</string>
+	<string>Kiracım’ı Face ID ile kilitleyip açabilmen için.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>CFBundleDisplayName</key>
-        <string>Evim</string>
+        <string>Kiracım</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

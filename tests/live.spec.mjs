@@ -42,6 +42,13 @@ async function logout(page){
   await expect(page).toHaveURL(/#\/giris$/);
 }
 
+test('kayıt formu kullanım koşulları ve aydınlatma metnine bağlanır', async ({ page }) => {
+  await page.goto('index.html#/kayit');
+  const box = page.locator('label.check');
+  await expect(box.locator('a[href="https://kiracim.online/kosullar/"]')).toHaveText('Kullanım Koşulları’nı');
+  await expect(box.locator('a[href="https://kiracim.online/gizlilik/"]')).toHaveText('Gizlilik ve KVKK Aydınlatma Metni’ni');
+});
+
 test('oturum yokken giriş ekranı açılır; demo öğeleri görünmez', async ({ page }) => {
   await page.goto('index.html#/mulk-sahibi/rapor');
   await expect(page).toHaveURL(/#\/giris$/);
@@ -155,7 +162,7 @@ test('kayıt formu eksikleri söyler, e-posta doğrulaması gerekiyorsa bilgi ve
   await expect(page.locator('.note.warn')).toHaveText('Şifre en az 8 karakter olmalı.');
   await page.fill('input[name=password]', 'yeterince-uzun');
   await page.click('button:has-text("Hesap oluştur")');
-  await expect(page.locator('.note.warn')).toContainText('KVKK');
+  await expect(page.locator('.note.warn')).toContainText('koşulları kabul');
   await page.check('input[name=consent]');
   await page.click('button:has-text("Hesap oluştur")');
   await expect(page).toHaveURL(/#\/giris$/);

@@ -1,4 +1,4 @@
-/* Evim service worker: çevrimdışı çalışma ve anlık bildirimler.
+/* Kiracım service worker: çevrimdışı çalışma ve anlık bildirimler.
    Yeni sürüm yayınlarken CACHE sürümünü artırın; testler SHELL listesinin
    assets/ klasörüyle eşleştiğini denetler. */
 
@@ -91,8 +91,8 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; }
-  catch(e){ data = { title:'Evim', body: event.data ? event.data.text() : '' }; }
-  event.waitUntil(self.registration.showNotification(data.title || 'Evim', {
+  catch(e){ data = { title:'Kiracım', body: event.data ? event.data.text() : '' }; }
+  event.waitUntil(self.registration.showNotification(data.title || 'Kiracım', {
     body: data.body || '',
     icon: './assets/icons/icon-192.png',
     badge: './assets/icons/icon-192.png',

@@ -106,12 +106,12 @@ test.describe('İngilizce mod', () => {
     await expect(page.locator('#screen .hero .label')).toHaveText(/^(January|February|March|April|May|June|July|August|September|October|November|December) \d{4} rent$/);
   });
 
-  test('kullanıcı verisi olmayan yerlerde Türkçe harf kalmaz', async ({ page }) => {
+  test('kullanıcı verisi ve marka adı dışında Türkçe harf kalmaz', async ({ page }) => {
     await open(page, '#/mulk-sahibi?s=ayarlar');
-    expect((await page.locator('#layer .sheet').innerText()).replace('Türkçe', '')).not.toMatch(TURKISH);
+    expect((await page.locator('#layer .sheet').innerText()).replace(/Türkçe|Kiracım/g, '')).not.toMatch(TURKISH);
     await open(page, '#/mulk-sahibi');
     expect(await page.locator('#tabbar').innerText()).not.toMatch(TURKISH);
-    expect(await page.locator('#shell').innerText().then(s => s.replace(/Moda’daki ev|Cihangir 1\+1|Ataşehir 2\+1|Levent ofis|Bağdat Cd. mağaza|English|Türkçe/g, ''))).not.toMatch(TURKISH);
+    expect(await page.locator('#shell').innerText().then(s => s.replace(/Moda’daki ev|Cihangir 1\+1|Ataşehir 2\+1|Levent ofis|Bağdat Cd. mağaza|English|Türkçe|Kiracım/g, ''))).not.toMatch(TURKISH);
   });
 
   test('dil ayarlardan değiştirilir ve kalıcıdır', async ({ page }) => {

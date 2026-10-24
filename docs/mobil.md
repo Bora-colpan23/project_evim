@@ -1,6 +1,6 @@
 # iOS ve Android uygulaması
 
-Evim'in telefon uygulaması, web sürümüyle **aynı koddan** üretilir:
+Kiracım'ın telefon uygulaması, web sürümüyle **aynı koddan** üretilir:
 [Capacitor](https://capacitorjs.com) web uygulamasını yerel bir iOS/Android
 kabuğunun içinde çalıştırır ve telefonun yeteneklerine (bildirim, Face ID,
 kamera, mağaza ödemesi) erişim verir. Web sürümü GitHub Pages'te aynen
@@ -176,11 +176,22 @@ EVIM_KEYSTORE=/yol/evim-upload.jks EVIM_KEYSTORE_PASSWORD=… EVIM_KEY_ALIAS=evi
   Toplanan veriler: ad, e-posta, telefon (hesap); fotoğraf ve belgeler
   (kullanıcı içeriği); satın alma geçmişi (abonelik). Veriler reklam ya da
   izleme için kullanılmaz.
-- **Hesap silme** uygulama içinde: Hesap → *Hesabı sil*. Play Console bir de
-  web adresi ister; bunun için gizlilik sayfana "hesabını silmek için
-  uygulamada Hesap → Hesabı sil" açıklaması yeterlidir.
-- **Gizlilik politikası ve kullanım koşulları** adresleri `config.js` →
-  `billing.termsUrl`, `billing.privacyUrl` alanlarına ve mağaza sayfalarına.
+- **Yasal sayfalar** sitede hazır (`site/` klasörü); mağaza formlarına bu adresleri gir:
+
+  | Mağaza alanı | Adres |
+  | --- | --- |
+  | Gizlilik politikası (Apple, Google) | `https://kiracim.online/gizlilik/` |
+  | Kullanım koşulları / EULA (Apple, abonelik için) | `https://kiracim.online/kosullar/` |
+  | Destek adresi (Apple) | `https://kiracim.online/destek/` |
+  | Hesap silme adresi (Google *Data safety*) | `https://kiracim.online/hesap-silme/` |
+  | İletişim e-postası | `info@kiracim.online` |
+
+  Sayfalar şu an **taslak**: şirket unvanı, adres, MERSİS ve vergi bilgisi
+  `site/*/index.html` içinde işaretli alanlarda doldurulmalı, metinler bir
+  hukukçuya gösterilmeli; sonra her sayfadaki "Taslak" kutusu ve
+  `<meta name="robots" content="noindex">` satırı kaldırılır.
+- **Hesap silme** uygulama içinde: Ayarlar → Hesap ve bildirim ayarları →
+  *Hesabı sil*.
 - **Ekran görüntüleri**: iPhone 6.9", Android telefon; Türkçe ve İngilizce.
 
 ## 6. Güncellemeler

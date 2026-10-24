@@ -722,7 +722,7 @@ export async function onSubmit(ev){
       title:t('Mülk eklendi'), body:t('Kiracıya davet linkini gönder.'), icon:'home',
       actions:[{ label:t('WhatsApp ile davet et'), run:() => {
         const num = ph ? '9' + ph.replace(/^9/, '') : '';
-        window.open('https://wa.me/'+num+'?text='+encodeURIComponent((t('Merhaba,')+' ')+name+(' '+t('için Evim’de ortak panelimize katılır mısın? [davet linki]'))), '_blank', 'noopener');
+        window.open('https://wa.me/'+num+'?text='+encodeURIComponent((t('Merhaba,')+' ')+name+(' '+t('için Kiracım’da ortak panelimize katılır mısın? [davet linki]'))), '_blank', 'noopener');
       } }]
     });
     return;
@@ -750,7 +750,7 @@ export async function onSubmit(ev){
       title:t('Kiracı eklendi'),
       body: email ? name+(' '+t('için davet')+' ')+email+(' '+t('adresine gönderilecek.')) : name+(' '+t('eklendi. Davet bağlantısını paylaşabilirsin.')),
       icon:'home',
-      actions: digits ? [{ label:t('WhatsApp ile davet et'), run:() => window.open('https://wa.me/9'+digits.replace(/^9/, '')+'?text='+encodeURIComponent((t('Merhaba,')+' ')+p.name+(' '+t('için Evim’de ortak panelimize katılır mısın? [davet linki]'))), '_blank', 'noopener') }] : undefined
+      actions: digits ? [{ label:t('WhatsApp ile davet et'), run:() => window.open('https://wa.me/9'+digits.replace(/^9/, '')+'?text='+encodeURIComponent((t('Merhaba,')+' ')+p.name+(' '+t('için Kiracım’da ortak panelimize katılır mısın? [davet linki]'))), '_blank', 'noopener') }] : undefined
     });
     return;
   }
@@ -1036,7 +1036,7 @@ export async function onChangeField(ev){
       render();
       notify({ title:t('Veri yüklendi'), body:t('Dosyadaki durum geri yüklendi.'), icon:'doc' }, false);
     } catch(e){
-      notify({ title:t('Dosya okunamadı'), body:t('Bu dosya Evim verisi gibi görünmüyor.'), icon:'doc' }, false);
+      notify({ title:t('Dosya okunamadı'), body:t('Bu dosya Kiracım verisi gibi görünmüyor.'), icon:'doc' }, false);
     }
     ev.target.value = '';
   }

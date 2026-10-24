@@ -23,14 +23,22 @@ export const CONFIG = Object.assign({
   // Uygulamanın yayın adresi. Davet ve e-posta bağlantıları bu adresle üretilir;
   // telefonda uygulamayı doğrudan açar (docs/mobil.md).
   publicUrl: 'https://kiracim.online/',
+  supportEmail: 'info@kiracim.online',
+  // Yasal sayfalar (site/ klasörü, sitede yayınlanır). Mağazalar bu adresleri ister.
+  legal: {
+    terms: 'https://kiracim.online/kosullar/',
+    privacy: 'https://kiracim.online/gizlilik/',
+    deletion: 'https://kiracim.online/hesap-silme/',
+    support: 'https://kiracim.online/destek/'
+  },
   billing: {
     revenuecatIosKey: '',       // RevenueCat → Apps → App Store uygulaması → Public API key (appl_…)
     revenuecatAndroidKey: '',   // RevenueCat → Apps → Play Store uygulaması → Public API key (goog_…)
     // Web'den kartla satış: boşken web'deki abonelik sayfası telefondan abone olmayı anlatır.
     webPurchaseUrl: '',         // RevenueCat Web Purchase Link (https://pay.rev.cat/…); kullanıcı kimliği sona eklenir
     webManageUrl: '',           // web aboneleri için abonelik yönetimi sayfası
-    termsUrl: '',               // kullanım koşulları (mağazalar zorunlu tutar)
-    privacyUrl: '',             // gizlilik politikası
+    termsUrl: 'https://kiracim.online/kosullar/',   // kullanım koşulları (mağazalar zorunlu tutar)
+    privacyUrl: 'https://kiracim.online/gizlilik/', // gizlilik politikası
     appStoreUrl: '',            // yayından sonra: https://apps.apple.com/tr/app/…
     playStoreUrl: '',           // yayından sonra: https://play.google.com/store/apps/details?id=online.kiracim.app
     androidPackage: 'online.kiracim.app', // Play Store abonelik yönetimi bağlantısı için

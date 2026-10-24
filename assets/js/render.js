@@ -76,12 +76,12 @@ const LANDLORD_TITLES = { portfolio:t('Portföy'), lreq:t('Talepler'), lmsg:t('M
 const AUTH_TITLES = { giris:t('Giriş yap'), kayit:t('Kayıt'), sifre:t('Şifre sıfırlama'), 'yeni-sifre':t('Yeni şifre'), katil:t('Davet'), davet:t('Mülke bağlan') };
 
 function titleFor(route, authView){
-  if (authView) return (AUTH_TITLES[route.auth] || t('Giriş yap')) + (' '+t('· Evim'));
+  if (authView) return (AUTH_TITLES[route.auth] || t('Giriş yap')) + (' '+t('· Kiracım'));
   if (route.role === 'landlord'){
-    if (route.pid && S.props[route.pid]) return S.props[route.pid].name + (' '+t('· Evim'));
-    return (LANDLORD_TITLES[route.tab] || t('Evim')) + (' '+t('· Evim'));
+    if (route.pid && S.props[route.pid]) return S.props[route.pid].name + (' '+t('· Kiracım'));
+    return (LANDLORD_TITLES[route.tab] || t('Kiracım')) + (' '+t('· Kiracım'));
   }
-  return (TENANT_TITLES[route.tab] || t('Evim')) + (' '+t('· Evim'));
+  return (TENANT_TITLES[route.tab] || t('Kiracım')) + (' '+t('· Kiracım'));
 }
 
 /** Yalnızca katmanı yeniler (form içi anlık güncellemeler için). */

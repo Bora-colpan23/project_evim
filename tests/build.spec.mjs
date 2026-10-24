@@ -27,6 +27,22 @@ test('paket dosyaları üretilir; CDN bağlantısı kalmaz', () => {
   expect(links[0].target).toMatchObject({ package_name:'online.kiracim.app', sha256_cert_fingerprints:['AA:BB'] });
 });
 
+test('yasal ve destek sayfaları sitede; uygulama adı Kiracım', async ({ page }) => {
+  for (const slug of ['gizlilik', 'kosullar', 'hesap-silme', 'destek']){
+    await page.goto(OUT + '/' + slug + '/');
+    await expect(page).toHaveTitle(/· Kiracım$/);
+    await expect(page.locator('main h1')).toBeVisible();
+    await expect(page.locator('a[href="mailto:info@kiracim.online"]').first()).toBeVisible();
+    await expect(page.locator('nav.legal a')).toHaveCount(4);
+  }
+  await page.goto(OUT + '/kosullar/');
+  await expect(page.locator('main')).toContainText('₺249,99');
+  await expect(page.locator('main')).toContainText('24 saat önce');
+  await page.goto(OUT + '/index.html#/mulk-sahibi');
+  await expect(page).toHaveTitle(/Kiracım/);
+  expect(JSON.parse(readFileSync(OUT + '/manifest.webmanifest', 'utf8')).short_name).toBe('Kiracım');
+});
+
 test('paketlenmiş uygulama açılır, yerel yazı tipi ve supabase-js yüklenir', async ({ page }) => {
   const errors = watchErrors(page);
   const external = [];

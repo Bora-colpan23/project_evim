@@ -132,7 +132,7 @@ gönderince bildirim gelmeli.
 [Resend](https://resend.com) hesabı açıp alan adını doğrula, sonra:
 
 ```bash
-npx supabase secrets set RESEND_API_KEY="re_..." EMAIL_FROM="Evim <bildirim@alanadin.com>"
+npx supabase secrets set RESEND_API_KEY="re_..." EMAIL_FROM="Kiracım <bildirim@alanadin.com>"
 ```
 
 Kullanıcılar **Hesap → E-posta ile de bildir** seçeneğiyle açar.

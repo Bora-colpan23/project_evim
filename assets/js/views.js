@@ -931,7 +931,7 @@ export function installBlock(){
 export function shell(route, bare){
   const map = screenMap();
   const items = route.role === 'tenant' ? map.tenant : map.landlord;
-  const brand = '<div class="brand"><div class="mark">'+ic('home', 20)+('</div><div><b>'+t('Evim')+'</b>') +
+  const brand = '<div class="brand"><div class="mark">'+ic('home', 20)+('</div><div><b>'+t('Kiracım')+'</b>') +
       '<div class="muted" style="font-size:12px">'+(LIVE ? t('Kira yönetimi') : t('Kira yönetimi · demo'))+'</div></div></div>';
 
   if (bare){
@@ -964,7 +964,7 @@ export function shell(route, bare){
   const themeBtn = (v, label, icon) =>
     '<button class="btn small '+(S.theme === v ? 'primary' : 'ghost')+'" data-act="theme" data-v="'+v+'">'+ic(icon, 15)+' '+label+'</button>';
 
-  return '<div class="brand"><div class="mark">'+ic('home', 20)+('</div><div><b>'+t('Evim')+'</b>') +
+  return '<div class="brand"><div class="mark">'+ic('home', 20)+('</div><div><b>'+t('Kiracım')+'</b>') +
       ('<div class="muted" style="font-size:12px">'+t('Kira yönetimi prototipi')+'</div></div></div>') +
 
     ('<div class="seg" role="group" aria-label="'+t('Rol')+'">') +

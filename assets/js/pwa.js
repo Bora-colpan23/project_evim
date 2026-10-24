@@ -28,7 +28,7 @@ export function initPwa(){
     pwa.installable = false;
     pwa.installed = true;
     pwa.onChange();
-    notify({ title:t('Evim yüklendi'), body:t('Artık ana ekrandan açabilirsin.'), icon:'home' }, false);
+    notify({ title:t('Kiracım yüklendi'), body:t('Artık ana ekrandan açabilirsin.'), icon:'home' }, false);
   });
 
   addEventListener('offline', () => notify({ title:t('Çevrimdışısın'), body:t('Uygulama çalışmaya devam eder; değişiklikler bu cihazda saklanır.'), icon:'bell' }, false));

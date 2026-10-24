@@ -1,10 +1,9 @@
 {
   "appId": "online.kiracim.app",
-  "appName": "Evim",
+  "appName": "Kiracım",
   "webDir": "www",
   "ios": {
-    "contentInset": "never",
-    "scheme": "Evim"
+    "contentInset": "never"
   },
   "plugins": {
     "SplashScreen": {

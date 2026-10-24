@@ -6,7 +6,7 @@
 // Kaynak dosyalar olduğu gibi kopyalanır (derleme adımı yalnızca yayında):
 // - supabase-js ve yazı tipleri pakete alınır; uygulama ilk açılışta da internetsiz çalışır
 // - --native: yerel eklentiler tek dosyada toplanır (www/native.js)
-// - web: 404.html (yol biçimindeki davet bağlantıları için) ve isteğe bağlı
+// - web: yasal sayfalar (site/), 404.html (yol biçimindeki davet bağlantıları için) ve isteğe bağlı
 //   .well-known dosyaları (iOS Universal Links, Android App Links)
 //
 // Ortam değişkenleri (isteğe bağlı, yalnızca web):
@@ -91,8 +91,10 @@ await writeFile(join(OUT, 'sw.js'), sw);
 // 8) Web barındırma ekleri
 if (!NATIVE){
   await writeFile(join(OUT, '.nojekyll'), '');
+  // Yasal ve destek sayfaları: /gizlilik/, /kosullar/, /hesap-silme/, /destek/
+  await cp(join(ROOT, 'site'), OUT, { recursive: true });
   // /katil/KOD gibi yol biçimindeki bağlantılar → #/katil/KOD
-  await writeFile(join(OUT, '404.html'), `<!doctype html><meta charset="utf-8"><title>Evim</title>
+  await writeFile(join(OUT, '404.html'), `<!doctype html><meta charset="utf-8"><title>Kiracım</title>
 <script>
   var p = location.pathname, m = p.match(/^(.*?)\\/(katil|davet|giris|kayit|yeni-sifre)(\\/.*)?$/);
   location.replace(m ? m[1] + '/#/' + m[2] + (m[3] || '') + location.search : p.replace(/[^/]*$/, '') || '/');

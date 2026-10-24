@@ -656,7 +656,7 @@ export async function enablePush(){
   const reg = await navigator.serviceWorker.ready;
   if (!LIVE){
     // Demo: yalnızca cihaz bildirimi göster.
-    await reg.showNotification(t('Evim'), { body:t('Bildirimler bu cihazda açık.'), icon:'assets/icons/icon-192.png' });
+    await reg.showNotification(t('Kiracım'), { body:t('Bildirimler bu cihazda açık.'), icon:'assets/icons/icon-192.png' });
     return true;
   }
   if (!CONFIG.vapidPublicKey) throw new Error(t('Anlık bildirim anahtarı (vapidPublicKey) yapılandırılmamış.'));

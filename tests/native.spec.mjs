@@ -82,7 +82,7 @@ test('uygulama kilidi: açılınca doğrulama ister, yeniden açılışta kilit 
   await page.addInitScript(() => { window.__nativeCfg = Object.assign(window.__nativeCfg || {}, { authOk:false }); });
   await page.reload();
   await expect(page.locator('#lock')).toBeVisible();
-  await expect(page.locator('#lock')).toContainText('Evim kilitli');
+  await expect(page.locator('#lock')).toContainText('Kiracım kilitli');
   await page.evaluate(() => window.__native.setAuth(true));
   await page.click('#unlockBtn');
   await expect(page.locator('#lock')).toBeHidden();

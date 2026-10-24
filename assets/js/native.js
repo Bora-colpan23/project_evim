@@ -113,7 +113,7 @@ export async function nativePushRegister(onTap){
   if (p.receive === 'prompt' || p.receive === 'prompt-with-rationale') p = await N.PushNotifications.requestPermissions();
   if (p.receive !== 'granted') return null;
   if (N.platform === 'android'){
-    await N.PushNotifications.createChannel({ id:'evim', name:'Evim', description:t('Kira, dekont, talep ve mesaj bildirimleri'), importance:4 }).catch(() => {});
+    await N.PushNotifications.createChannel({ id:'evim', name:'Kiracım', description:t('Kira, dekont, talep ve mesaj bildirimleri'), importance:4 }).catch(() => {});
   }
 
   const token = await new Promise((resolve, reject) => {
@@ -174,10 +174,10 @@ export async function setLock(on){
 async function authenticate(){
   try {
     await N.BiometricAuth.authenticate({
-      reason: t('Evim’i açmak için kimliğini doğrula'),
+      reason: t('Kiracım’ı açmak için kimliğini doğrula'),
       cancelTitle: t('Vazgeç'),
       allowDeviceCredential: true,
-      androidTitle: t('Evim kilidi')
+      androidTitle: t('Kiracım kilidi')
     });
     return true;
   } catch(e){ return false; }
@@ -198,7 +198,7 @@ function showLock(){
     el.setAttribute('aria-modal', 'true');
     document.body.appendChild(el);
   }
-  el.innerHTML = '<div class="lockbox"><b>'+t('Evim kilitli')+'</b>' +
+  el.innerHTML = '<div class="lockbox"><b>'+t('Kiracım kilitli')+'</b>' +
     '<button class="btn primary" type="button" id="unlockBtn">'+t('Kilidi aç')+'</button></div>';
   el.hidden = false;
   const go = async () => {

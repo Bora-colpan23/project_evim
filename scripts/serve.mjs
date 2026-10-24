@@ -26,4 +26,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404, { 'content-type':'text/plain' }).end('Bulunamadı');
   }
-}).listen(PORT, () => console.log('Evim → http://localhost:' + PORT));
+}).listen(PORT, () => console.log('Kiracım → http://localhost:' + PORT));

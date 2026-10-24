@@ -244,3 +244,18 @@ test('ana sayfa üst menüsü oturum açıkken de "Giriş yap" ve "Kayıt ol" g�
   await expect(page.getByRole('button', { name: 'Kayıt ol' }).first()).toBeVisible();
   await expect(page.getByText('Uygulamayı aç')).toHaveCount(0);
 });
+
+test('ana sayfa: duyuru şeridi, açılır özellik menüsü ve kayan özellik kartları', async ({ page }) => {
+  await page.goto(url('/'));
+  await expect(page.getByText('Kiracılar ücretsiz · Mülk sahipleri 14 gün kartsız dener')).toBeVisible();
+  await page.getByRole('button', { name: 'Özellikler' }).hover();
+  await expect(page.getByText('Dekont yükleme')).toBeVisible();
+  await page.getByRole('tab', { name: /Yazışma ve belgeler/ }).hover();
+  await expect(page.getByText('Belge arşivi')).toBeVisible();
+  await expect(page.getByText('Fotoğraflı mesaj')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByText('Belge arşivi')).toHaveCount(0);
+  await expect(page.getByText('Fotoğraflı yazışma')).toBeVisible();
+  await page.getByRole('button', { name: 'Sonraki' }).click();
+  await expect(page.getByRole('button', { name: 'Hemen dene' }).first()).toBeVisible();
+});

@@ -14,7 +14,9 @@ import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { Slam } from '../ui/motion';
 import { useLangTick } from '../app-ui/hooks';
 import { Steps } from '../app-ui/blocks';
-import { features, more, planPoints, plans } from './content';
+import { features, planPoints, plans } from './content';
+import { Nav, TopBar } from './Navbar';
+import { FeatureCarousel } from './Carousel';
 
 const enter = (i: number) => FadeInDown.delay(60 + i * 80).springify().damping(22).stiffness(120);
 
@@ -27,34 +29,6 @@ function D({ children, size, color, style }: { children: any; size: number; colo
 function Logo({ onDark, animate }: { onDark?: boolean; animate?: boolean }) {
   const c = useColors();
   return <Wordmark size={28} color={onDark ? c.heroInk : undefined} animate={animate} />;
-}
-
-/** Yüzen hap biçimli gezinme: ekranın üstünde yapışık, yuvarlak ve beyaz. */
-function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
-  const c = useColors();
-  const { phone } = useBreakpoint();
-  return (
-    <View style={{ paddingTop: 14, paddingBottom: 6, backgroundColor: c.cream }}>
-      <Container>
-        <View style={{ minHeight: 64, borderRadius: radius.pill, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, paddingLeft: phone ? 14 : 22, paddingRight: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          {phone ? <Wordmark size={22} animate /> : <Logo animate />}
-          {!phone && (
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              {[['ozellikler', t('Özellikler')], ['fiyat', t('Fiyatlar')], ['iletisim', t('İletişim')]].map(([k, l]) => (
-                <PressScale key={k} onPress={() => scrollTo(k)} accessibilityRole="link" style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-                  <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{l}</Text>
-                </PressScale>
-              ))}
-            </View>
-          )}
-          <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-            <Button kind="quiet" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
-            <Button title={t('Kayıt ol')} onPress={() => go('/kayit')} style={phone ? { paddingHorizontal: 14, minHeight: 44 } : undefined} />
-          </View>
-        </View>
-      </Container>
-    </View>
-  );
 }
 
 /** Hap biçimli arayüz parçası (başlık içinde noktalama gibi durur). */
@@ -225,11 +199,10 @@ function FeatureTile({ bg, title, body, children, flex = 1 }: { bg: string; titl
   );
 }
 
-function Features({ onLayout }: { onLayout: (y: number) => void }) {
+function Features({ onLayout, go }: { onLayout: (y: number) => void; go: (p: string) => void }) {
   const c = useColors();
   const { desktop, phone } = useBreakpoint();
   const big = features();
-  const rest = more();
   return (
     <View onLayout={(e) => onLayout(e.nativeEvent.layout.y)}>
       <Container style={{ paddingTop: phone ? 56 : 112, gap: phone ? 28 : 48 }}>
@@ -271,14 +244,7 @@ function Features({ onLayout }: { onLayout: (y: number) => void }) {
             </Rings>
           </FeatureTile>
         </View>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          {rest.map((m) => (
-            <View key={m.title} style={{ backgroundColor: c.surface, borderRadius: 28, borderWidth: 1, borderColor: c.line, padding: 20, gap: 6, flexGrow: 1, flexBasis: phone ? '100%' : desktop ? '23%' : '46%' }}>
-              <D size={20}>{m.title}</D>
-              <Text v="small" muted>{m.body}</Text>
-            </View>
-          ))}
-        </View>
+        <FeatureCarousel go={go} />
       </Container>
     </View>
   );
@@ -453,12 +419,13 @@ export default function Landing() {
   const scrollTo = (k: string) => ref.current?.scrollTo({ y: Math.max(0, (ys.current[k] ?? 0) - 90), animated: true });
   return (
     <View style={{ flex: 1 }}>
-    <ScrollView ref={ref} style={{ flex: 1, backgroundColor: c.cream }} contentContainerStyle={{ flexGrow: 1 }} stickyHeaderIndices={[0]}>
+    <ScrollView ref={ref} style={{ flex: 1, backgroundColor: c.cream }} contentContainerStyle={{ flexGrow: 1 }} stickyHeaderIndices={[1]}>
+      <TopBar />
       <Nav go={go} scrollTo={scrollTo} />
       <Hero go={go} scrollTo={scrollTo} />
       <Words />
       <Manifesto />
-      <Features onLayout={(y) => (ys.current.ozellikler = y)} />
+      <Features go={go} onLayout={(y) => (ys.current.ozellikler = y)} />
       <How />
       <Pricing go={go} onLayout={(y) => (ys.current.fiyat = y)} />
       <Contact onLayout={(y) => (ys.current.iletisim = y)} />

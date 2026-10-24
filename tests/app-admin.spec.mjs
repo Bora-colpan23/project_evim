@@ -248,13 +248,25 @@ test('ana sayfa üst menüsü oturum açıkken de "Giriş yap" ve "Kayıt ol" g�
 test('ana sayfa: duyuru şeridi, açılır özellik menüsü ve kayan özellik kartları', async ({ page }) => {
   await page.goto(url('/'));
   await expect(page.getByText('Kiracılar ücretsiz · Mülk sahipleri 14 gün kartsız dener')).toBeVisible();
+  // Üzerine gelmek açmaz; basınca açılır ve fare çekilse de açık kalır.
   await page.getByRole('button', { name: 'Özellikler' }).hover();
+  await expect(page.getByText('Dekont yükleme')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Özellikler' }).click();
   await expect(page.getByText('Dekont yükleme')).toBeVisible();
-  await page.getByRole('tab', { name: /Yazışma ve belgeler/ }).hover();
+  await page.mouse.move(700, 700);
+  await page.waitForTimeout(500);
+  await expect(page.getByText('Dekont yükleme')).toBeVisible();
+  await page.getByRole('tab', { name: /Yazışma ve belgeler/ }).click();
   await expect(page.getByText('Belge arşivi')).toBeVisible();
   await expect(page.getByText('Fotoğraflı mesaj')).toBeVisible();
-  await page.keyboard.press('Escape');
+  // Bir daha basınca kapanır.
+  await page.getByRole('button', { name: 'Özellikler' }).click();
   await expect(page.getByText('Belge arşivi')).toHaveCount(0);
+  // Esc de kapatır.
+  await page.getByRole('button', { name: 'Özellikler' }).click();
+  await expect(page.getByText('Dekont yükleme')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByText('Dekont yükleme')).toHaveCount(0);
   await expect(page.getByText('Fotoğraflı yazışma')).toBeVisible();
   await page.getByRole('button', { name: 'Sonraki' }).click();
   await expect(page.getByRole('button', { name: 'Hemen dene' }).first()).toBeVisible();

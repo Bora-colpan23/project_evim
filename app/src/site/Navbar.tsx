@@ -1,5 +1,5 @@
 /* Üst alan: ince duyuru şeridi ve açılır menülü yapışkan gezinme (özellikler paneli). */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Linking, Pressable, Text as RNText, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { t } from '../domain/i18n';
@@ -41,14 +41,14 @@ function Dd({ children, size, color }: { children: any; size: number; color?: st
 }
 
 /** Açılır panel: sol kategoriler, ortada ilgili özellikler, sağda kayıt kartı. */
-function MegaPanel({ onPick, go, hover }: { onPick: () => void; go: (p: string) => void; hover: (on: boolean) => void }) {
+function MegaPanel({ onPick, go }: { onPick: () => void; go: (p: string) => void }) {
   const c = useColors();
   const { desktop } = useBreakpoint();
   const cats = menu();
   const [active, setActive] = useState(cats[0].id);
   const cat = cats.find((x) => x.id === active) || cats[0];
   return (
-    <Pressable onHoverIn={() => hover(true)} onHoverOut={() => hover(false)} style={{ position: 'absolute', top: 76, left: 0, right: 0, zIndex: 60 }}>
+    <View style={{ position: 'absolute', top: 76, left: 0, right: 0, zIndex: 60 }}>
       <Animated.View entering={FadeInDown.duration(200)} exiting={FadeOut.duration(120)}
         style={{ backgroundColor: c.surface, borderRadius: 32, borderWidth: 1, borderColor: c.line, padding: 14, flexDirection: 'row', gap: 6, shadowColor: '#121A3B', shadowOpacity: 0.16, shadowRadius: 40, shadowOffset: { width: 0, height: 24 } }}>
         <View style={{ width: 270, gap: 4 }} accessibilityRole="tablist">
@@ -92,21 +92,15 @@ function MegaPanel({ onPick, go, hover }: { onPick: () => void; go: (p: string) 
           </>
         )}
       </Animated.View>
-    </Pressable>
+    </View>
   );
 }
 
-/** Yapışkan hap menü. "Özellikler"in üstüne gelince (ya da dokununca) panel açılır. */
+/** Yapışkan hap menü. "Özellikler"e basınca panel açılır ve açık kalır; yeniden basınca (ya da Esc ile) kapanır. */
 export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
   const c = useColors();
   const { phone, desktop } = useBreakpoint();
   const [open, setOpen] = useState(false);
-  const inside = useRef({ trigger: false, panel: false });
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const settle = () => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => { if (!inside.current.trigger && !inside.current.panel) setOpen(false); }, 140);
-  };
   useEffect(() => {
     if (typeof document === 'undefined') return;
     const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
@@ -122,7 +116,7 @@ export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: s
             {phone ? <Wordmark size={22} animate /> : <Wordmark size={28} animate />}
             {!phone && (
               <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-                <Pressable onPress={() => setOpen((o) => !o)} onHoverIn={() => { inside.current.trigger = true; setOpen(true); }} onHoverOut={() => { inside.current.trigger = false; settle(); }}
+                <Pressable onPress={() => setOpen((o) => !o)}
                   accessibilityRole="button" accessibilityState={{ expanded: open }} accessibilityLabel={t('Özellikler')}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: open ? c.surface2 : 'transparent' }}>
                   <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Özellikler')}</Text>
@@ -141,7 +135,7 @@ export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: s
             </View>
           </View>
           {open && !phone && (
-            <MegaPanel go={go} hover={(on) => { inside.current.panel = on; if (!on) settle(); }}
+            <MegaPanel go={go}
               onPick={() => { setOpen(false); scrollTo('ozellikler'); }} />
           )}
         </View>

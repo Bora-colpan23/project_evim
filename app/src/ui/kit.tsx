@@ -5,6 +5,7 @@ import {
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { fonts, radius, useColors } from './theme';
+import { Loader } from './Loader';
 
 type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'small' | 'label' | 'num';
 const SCALE: Record<Variant, TextStyle> = {
@@ -133,7 +134,7 @@ export function Button({ title, onPress, kind = 'primary', block, disabled, load
     >
       {glow ? <GlowBlob hover={hover} /> : null}
       {icon}
-      <RNText style={{ color: fg, fontFamily: fonts.bodyBold, fontSize: 16 }}>{loading ? '…' : title}</RNText>
+      {loading ? <Loader size={28} mono={fg} /> : <RNText style={{ color: fg, fontFamily: fonts.bodyBold, fontSize: 16 }}>{title}</RNText>}
     </PressScale>
   );
 }

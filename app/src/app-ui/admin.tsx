@@ -9,6 +9,7 @@ import { t } from '../domain/i18n';
 import { tl } from '../domain/util';
 import { Button, Chip, Field, PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
+import { Loader } from '../ui/Loader';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { Card, Empty, H2, Muted, Row, Seg, Stack } from './blocks';
 
@@ -55,7 +56,7 @@ export default function AdminPanel() {
           </Row>
 
           {err ? <Card><Text v="small" color={c.badInk}>{err}</Text></Card> : null}
-          {!data && !err ? <Muted>{t('Yükleniyor…')}</Muted> : null}
+          {!data && !err ? <View style={{ alignItems: 'center', paddingVertical: 40 }}><Loader size={96} /></View> : null}
 
           {data ? (
             <>

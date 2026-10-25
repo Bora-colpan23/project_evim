@@ -8,7 +8,7 @@
 // Ortam: EXPO_PUBLIC_SUPABASE_URL (API ve gerçek zamanlı bağlantı kaynağı), EXPO_PUBLIC_TURNSTILE_SITE_KEY
 // (varsa Cloudflare Turnstile için gerekli kaynaklar), EXPO_BASE_URL (GitHub Pages proje yolu).
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const out = process.argv[2];
@@ -90,6 +90,22 @@ for (const file of walk(out)) {
   count++;
 }
 console.log(`harden-html: ${count} sayfa sertleştirildi`);
+
+// Temiz adresler her sunucuda çalışsın: /giris/kiraci.html dosyasının /giris/kiraci/index.html kopyası da yazılır
+// (yeniden yazma kuralı olmayan statik barındırıcılarda /giris/kiraci adresi bu klasöre düşer).
+// Bulunamayan adresler için 404.html de üretilir.
+let copies = 0;
+for (const file of walk(out)) {
+  const name = file.split('/').pop();
+  if (name === 'index.html' || name === '404.html' || name.startsWith('_') || name.startsWith('+')) continue;
+  const dir = file.replace(/\.html$/, '');
+  mkdirSync(dir, { recursive: true });
+  copyFileSync(file, join(dir, 'index.html'));
+  copies++;
+}
+const nf = join(out, '+not-found.html');
+if (existsSync(nf)) copyFileSync(nf, join(out, '404.html'));
+console.log(`harden-html: ${copies} temiz adres klasörü, 404.html yazıldı`);
 
 // Kullanılmayan yazı tipi dosyalarını sil: expo paketteki her ağırlığı kopyalar (≈14 MB); sayfalar yalnızca @font-face'te geçenleri ister.
 const used = new Set();

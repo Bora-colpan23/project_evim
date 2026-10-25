@@ -49,7 +49,8 @@
     "export:web": "expo export -p web",
     "typecheck": "tsc --noEmit",
     "build:web": "expo export -p web --output-dir dist && node scripts/harden-html.mjs dist",
-    "build:hostinger": "expo export -p web --output-dir ../hostinger-site && node scripts/harden-html.mjs ../hostinger-site && node -e \"require('fs').copyFileSync('../hostinger-site/+not-found.html','../hostinger-site/404.html')\""
+    "build:hostinger": "npm run build:web && rm -rf ../hostinger-site && cp -r dist ../hostinger-site",
+    "build": "npm run build:web"
   },
   "private": true
 }

@@ -301,7 +301,7 @@ test('Hostinger: .htaccess (HTTPS, temiz adresler, başlıklar) ve manifest derl
   expect(ht).toContain('ErrorDocument 404 /404.html');
   const man = JSON.parse(readFileSync(DIST + '/manifest.webmanifest', 'utf8'));
   expect(man).toMatchObject({ short_name: 'Kiracım', display: 'standalone', start_url: './' });
-  for (const p of ['giris/kiraci.html', 'giris/mulk-sahibi.html', 'giris/yonetici.html', 'kayit/kiraci.html', 'kayit/mulk-sahibi.html', 'sifre.html', 'katil.html', 'uygulama/mesajlar.html', 'admin/index.html', 'index.html'])
+  for (const p of ['404.html', 'giris/kiraci/index.html', 'kayit/mulk-sahibi/index.html', 'uygulama/mesajlar/index.html', 'giris/kiraci.html', 'giris/mulk-sahibi.html', 'giris/yonetici.html', 'kayit/kiraci.html', 'kayit/mulk-sahibi.html', 'sifre.html', 'katil.html', 'uygulama/mesajlar.html', 'admin/index.html', 'index.html'])
     expect(existsSync(DIST + '/' + p), p).toBe(true);
 });
 

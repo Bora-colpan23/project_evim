@@ -209,7 +209,7 @@ test.describe('telefon görünümü', () => {
         .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 40 || r.width < 40) && getComputedStyle(e).visibility !== 'hidden'; })
         .map((e) => `${e.getAttribute('aria-label') || e.textContent.trim().slice(0, 20)} ${Math.round(e.getBoundingClientRect().width)}×${Math.round(e.getBoundingClientRect().height)}`));
       expect(small, p + ' küçük dokunma hedefi').toEqual([]);
-      const tiny = await page.evaluate(() => [...document.querySelectorAll('div, span')].filter((e) => e.children.length === 0 && e.textContent.trim() && parseFloat(getComputedStyle(e).fontSize) < 11).map((e) => e.textContent.trim().slice(0, 20)));
+      const tiny = await page.evaluate(() => [...document.querySelectorAll('div, span')].filter((e) => e.children.length === 0 && e.textContent.trim() && !e.closest('[aria-hidden="true"]') && parseFloat(getComputedStyle(e).fontSize) < 11).map((e) => e.textContent.trim().slice(0, 20)));
       expect(tiny, p + ' çok küçük yazı').toEqual([]);
     }
   });

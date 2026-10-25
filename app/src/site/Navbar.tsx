@@ -126,10 +126,11 @@ function MegaPanel({ onPick, go }: { onPick: () => void; go: (p: string) => void
   );
 }
 
-/** Yapışkan hap menü. "Özellikler"e basınca panel açılır ve açık kalır; yeniden basınca (ya da Esc ile) kapanır. */
+/** Yapışkan beyaz üst menü (Midas düzeni): solda logo, ortada bağlantılar, sağda koyu "Giriş yap" ve vurgulu "Kayıt ol".
+    "Özellikler"e basınca panel açılır ve açık kalır; yeniden basınca (ya da Esc ile) kapanır. */
 export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
   const c = useColors();
-  const { phone, desktop } = useBreakpoint();
+  const { phone } = useBreakpoint();
   const [open, setOpen] = useState(false);
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -137,31 +138,32 @@ export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: s
     document.addEventListener('keydown', key);
     return () => document.removeEventListener('keydown', key);
   }, []);
-  const links: [string, string][] = [['fiyat', t('Fiyatlar')], ['iletisim', t('İletişim')]];
+  const links: [string, string][] = [['nasil', t('Nasıl çalışır')], ['fiyat', t('Fiyatlar')], ['sss', t('SSS')], ['iletisim', t('İletişim')]];
+  const small = { minHeight: 44, paddingHorizontal: phone ? 14 : 20 };
   return (
-    <View style={{ paddingTop: 14, paddingBottom: 6, backgroundColor: c.cream, zIndex: 20 }}>
-      <Container>
+    <View style={{ backgroundColor: c.surface, borderBottomWidth: 1, borderBottomColor: c.line, zIndex: 20 }}>
+      <Container style={{ maxWidth: 1100 }}>
         <View style={{ position: 'relative' }}>
-          <View style={{ minHeight: 64, borderRadius: radius.pill, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, paddingLeft: phone ? 14 : 22, paddingRight: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ height: phone ? 64 : 72, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             {phone ? <Wordmark size={22} animate /> : <Wordmark size={28} animate />}
             {!phone && (
-              <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
                 <Pressable onPress={() => setOpen((o) => !o)}
                   accessibilityRole="button" accessibilityState={{ expanded: open }} accessibilityLabel={t('Özellikler')}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 16, borderRadius: radius.pill, backgroundColor: open ? c.surface2 : 'transparent' }}>
-                  <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t('Özellikler')}</Text>
-                  <View style={{ transform: [{ rotate: open ? '90deg' : '-90deg' }] }}><Icon name="back" size={14} /></View>
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: open ? c.surface2 : 'transparent' }}>
+                  <Text v="small" style={{ fontFamily: fonts.bodyBold }}>{t('Özellikler')}</Text>
+                  <View style={{ transform: [{ rotate: open ? '90deg' : '-90deg' }] }}><Icon name="back" size={13} /></View>
                 </Pressable>
                 {links.map(([k, l]) => (
-                  <PressScale key={k} onPress={() => { setOpen(false); scrollTo(k); }} accessibilityRole="link" style={{ paddingVertical: 10, paddingHorizontal: 16 }}>
-                    <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{l}</Text>
+                  <PressScale key={k} onPress={() => { setOpen(false); scrollTo(k); }} accessibilityRole="link" style={{ minHeight: 44, paddingHorizontal: 14, justifyContent: 'center' }}>
+                    <Text v="small" style={{ fontFamily: fonts.bodyBold }}>{l}</Text>
                   </PressScale>
                 ))}
               </View>
             )}
-            <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-              <Button kind="ghost" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
-              <Button kind="primary" title={t('Kayıt ol')} onPress={() => go('/kayit')} style={phone ? { paddingHorizontal: 14, minHeight: 44 } : undefined} />
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <Button kind="dark" title={t('Giriş yap')} onPress={() => go('/giris')} style={small} />
+              <Button kind="primary" title={t('Kayıt ol')} onPress={() => go('/kayit')} style={small} />
             </View>
           </View>
           {open && !phone && (

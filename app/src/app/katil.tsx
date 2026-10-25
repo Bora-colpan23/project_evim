@@ -31,7 +31,7 @@ export default function Katil() {
         </View>
       ) : null}
       <Button block title={t('Kiracı hesabı oluştur')} onPress={() => router.push('/kayit/kiraci')} />
-      <Button block kind="ghost" title={t('Hesabım var, giriş yap')} onPress={() => router.push('/giris/kiraci')} />
+      <Button block kind="glow" title={t('Hesabım var, giriş yap')} onPress={() => router.push('/giris/kiraci')} />
     </AuthShell>
   );
 }

@@ -102,7 +102,7 @@ function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string)
         </View>
         <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Button title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
-          <Button kind="ghost" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
+          <Button kind="glow" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
         </View>
       </Animated.View>
     </View>
@@ -372,7 +372,7 @@ function Contact({ onLayout }: { onLayout: (y: number) => void }) {
             </View>
             <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
               <Button kind="dark" title={t('E-posta gönder')} onPress={mail} style={{ minHeight: 56, paddingHorizontal: 28 }} />
-              <Button kind="ghost" title={t('Destek sayfası')} onPress={() => Linking.openURL(CONFIG.legal.support)} style={{ minHeight: 56, paddingHorizontal: 28, backgroundColor: 'rgba(255,255,255,0.55)' }} />
+              <Button kind="glow" title={t('Destek sayfası')} onPress={() => Linking.openURL(CONFIG.legal.support)} style={{ minHeight: 56, paddingHorizontal: 28, backgroundColor: 'rgba(255,255,255,0.55)' }} />
             </View>
           </View>
         </View>
@@ -429,7 +429,7 @@ export default function Landing() {
       <Footer />
     </ScrollView>
     <View pointerEvents="box-none" style={{ position: 'absolute', right: 18, bottom: 18 }}>
-      <Button kind="dark" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 48, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }} />
+      <Button kind="glow" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 48, shadowOpacity: 0.28, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }} />
     </View>
     </View>
   );

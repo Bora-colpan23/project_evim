@@ -1,8 +1,9 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import {
-  Pressable, PressableProps, StyleProp, StyleSheet, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle
+  Platform, Pressable, PressableProps, StyleProp, StyleSheet, Text as RNText, TextInput, TextInputProps, TextStyle, View, ViewStyle
 } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSpring, withTiming } from 'react-native-reanimated';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { fonts, radius, useColors } from './theme';
 
 type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'body' | 'small' | 'label' | 'num';
@@ -56,14 +57,44 @@ export function PressScale({ children, style, wrapStyle, scaleTo = 0.97, ...rest
   );
 }
 
+/** Düğmenin arkasında dönen, bulanık gradyan leke (pembe → mor → camgöbeği). Üzerine gelince küçülür. */
+function GlowBlob({ hover }: { hover: boolean }) {
+  const reduced = useReducedMotion();
+  const rot = useSharedValue(0);
+  const size = useSharedValue(160);
+  useEffect(() => {
+    if (reduced) return;
+    rot.value = withRepeat(withTiming(360, { duration: 3000, easing: Easing.linear }), -1);
+  }, [reduced, rot]);
+  useEffect(() => { size.value = withTiming(hover ? 128 : 160, { duration: 400 }); }, [hover, size]);
+  const a = useAnimatedStyle(() => ({ width: size.value, height: size.value, borderRadius: 999, transform: [{ rotate: rot.value + 'deg' }] }));
+  const web: any = Platform.OS === 'web'
+    ? { backgroundImage: 'linear-gradient(90deg, rgba(222,0,75,1) 0%, rgba(191,70,255,1) 49%, rgba(0,212,255,1) 100%)', filter: 'blur(20px)', opacity: 0.5 }
+    : null;
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+      {web ? <Animated.View style={[web, a]} /> : (
+        <Animated.View style={[{ opacity: 0.45 }, a]}>
+          <Svg width="100%" height="100%" viewBox="0 0 100 100">
+            <Defs><LinearGradient id="gb" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#DE004B" /><Stop offset="0.49" stopColor="#BF46FF" /><Stop offset="1" stopColor="#00D4FF" /></LinearGradient></Defs>
+            <Circle cx="50" cy="50" r="40" fill="url(#gb)" />
+          </Svg>
+        </Animated.View>
+      )}
+    </View>
+  );
+}
+
 export function Button({ title, onPress, kind = 'primary', block, disabled, loading, style, icon }: {
-  title: string; onPress?: () => void; kind?: 'primary' | 'dark' | 'ghost' | 'quiet' | 'onDark';
+  title: string; onPress?: () => void; kind?: 'primary' | 'dark' | 'ghost' | 'quiet' | 'onDark' | 'glow';
   block?: boolean; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; icon?: ReactNode;
 }) {
   const c = useColors();
+  const [hover, setHover] = useState(false);
+  const glow = kind === 'glow';
   const off = !!(disabled || loading);
-  const bg = off && (kind === 'primary' || kind === 'dark') ? c.line6 : kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
-  const fg = off && (kind === 'primary' || kind === 'dark') ? c.muted : kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
+  const bg = glow ? (hover ? '#C1E4F8' : c.surface) : off && (kind === 'primary' || kind === 'dark') ? c.line6 : kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
+  const fg = glow ? (hover ? '#210055' : c.ink) : off && (kind === 'primary' || kind === 'dark') ? c.muted : kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
   const border = kind === 'ghost' ? c.ink : kind === 'onDark' ? 'rgba(251,244,234,0.45)' : 'transparent';
   return (
     <PressScale
@@ -71,15 +102,19 @@ export function Button({ title, onPress, kind = 'primary', block, disabled, load
       accessibilityState={{ disabled: !!(disabled || loading) }}
       disabled={disabled || loading}
       onPress={onPress}
+      onHoverIn={glow ? () => setHover(true) : undefined}
+      onHoverOut={glow ? () => setHover(false) : undefined}
       style={[
         {
           minHeight: 56, paddingHorizontal: 26, borderRadius: radius.pill, backgroundColor: bg,
-          borderWidth: 1.5, borderColor: border, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+          borderWidth: glow ? 0 : 1.5, borderColor: border,
+          ...(glow ? { overflow: 'hidden' as const, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 0 } } : null), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
           alignSelf: block ? 'stretch' : 'flex-start'
         },
         style
       ]}
     >
+      {glow ? <GlowBlob hover={hover} /> : null}
       {icon}
       <RNText style={{ color: fg, fontFamily: fonts.bodyBold, fontSize: 16 }}>{loading ? '…' : title}</RNText>
     </PressScale>

@@ -160,7 +160,7 @@ export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: s
               </View>
             )}
             <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-              <Button kind="quiet" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
+              <Button kind="glow" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
               <Button title={t('Kayıt ol')} onPress={() => go('/kayit')} style={phone ? { paddingHorizontal: 14, minHeight: 44 } : undefined} />
             </View>
           </View>

@@ -3,6 +3,7 @@ import { Linking, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 import AuthShell from './AuthShell';
 import { Role, useAuth } from './auth';
+import { Captcha } from './captcha';
 import { CONFIG } from '../domain/config';
 import { t } from '../domain/i18n';
 import { Button, Field, PressScale, Text } from '../ui/kit';
@@ -48,6 +49,7 @@ export default function SignupForm({ role }: { role: Role }) {
       </PressScale>
       {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
       {info ? <Text v="small" color={c.okInk}>{info}</Text> : null}
+      <Captcha />
       <Button kind="primary" block title={t('Hesap oluştur')} onPress={submit} loading={busy} />
       <PressScale onPress={() => router.push(landlord ? '/giris/mulk-sahibi' : '/giris/kiraci')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontFamily: fonts.bodyBold }}>{t('Hesabın var mı? Giriş yap')}</Text></PressScale>
       <PressScale onPress={() => router.replace(landlord ? '/kayit/kiraci' : '/kayit/mulk-sahibi')} accessibilityRole="link"><Text v="small" muted>{landlord ? t('Kiracı mısın? Kiracı olarak kayıt ol') : t('Mülk sahibi misin? Mülk sahibi olarak kayıt ol')}</Text></PressScale>

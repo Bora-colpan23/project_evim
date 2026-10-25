@@ -4,7 +4,8 @@
 // istemci akışı sahte Supabase (app/src/testing/fake-supabase.js) ile doğrulanır.
 import { test, expect } from '@playwright/test';
 import { execSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { serveDist, seed, PW } from './app-helpers.mjs';
 import { watchErrors, PNG } from './helpers.mjs';
 
@@ -19,7 +20,7 @@ test.describe.configure({ mode: 'serial' });
 test.beforeAll(async () => {
   test.setTimeout(300_000);                       // ilk çalıştırmada uygulama derlenir
   if (!existsSync(DIST + '/index.html')) {
-    execSync('npx expo export -p web --output-dir dist-fake', {
+    execSync('npx expo export -p web --output-dir dist-fake && node scripts/harden-html.mjs dist-fake', {
       cwd: new URL('../app', import.meta.url).pathname, stdio: 'inherit',
       env: { ...process.env, EXPO_PUBLIC_SUPABASE_URL: 'fake:', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'fake' }
     });
@@ -272,4 +273,51 @@ test('ana sayfa: duyuru şeridi, açılır özellik menüsü ve kayan özellik k
   await expect(page.getByText('Fotoğraflı yazışma')).toBeVisible();
   await page.getByRole('button', { name: 'Sonraki' }).click();
   await expect(page.getByRole('button', { name: 'Hemen dene' }).first()).toBeVisible();
+});
+
+/** Derlenmiş her sayfa: içerik güvenlik politikası var, her satır içi betik özetle izinli. */
+function htmlFiles(dir) {
+  return readdirSync(dir).flatMap((n) => {
+    const p = dir + '/' + n;
+    return statSync(p).isDirectory() ? (n === '_expo' || n === 'assets' ? [] : htmlFiles(p)) : n.endsWith('.html') ? [p] : [];
+  });
+}
+
+test('güvenlik: her sayfada CSP var ve satır içi betiklerin hepsi özetle izinli', () => {
+  const files = htmlFiles(DIST);
+  expect(files.length).toBeGreaterThan(10);
+  for (const f of files) {
+    const html = readFileSync(f, 'utf8');
+    const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1];
+    expect(csp, f).toBeTruthy();
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("base-uri 'self'");
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-(inline|eval)'/);
+    for (const m of html.matchAll(/<script(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/g)) {
+      const hash = 'sha256-' + createHash('sha256').update(m[1]).digest('base64');
+      expect(csp, f + ' → ' + m[1].slice(0, 60)).toContain(hash);
+    }
+  }
+});
+
+test('güvenlik: CSP ihlali yok ve çerçeve koruması başka siteye gömmeyi engeller', async ({ page }) => {
+  const violations = [];
+  page.on('console', (m) => { if (/Content Security Policy|violates the following/i.test(m.text())) violations.push(m.text()); });
+  await page.goto(url('/'));
+  await expect(page.getByText('Kira işi,').first()).toBeVisible();
+  await page.goto(url('/giris/kiraci'));
+  await expect(page.getByLabel('E-posta')).toBeVisible();
+  expect(violations).toEqual([]);
+  // Başka bir sitenin içine gömülürse sayfa kendini gizler (clickjacking koruması).
+  const { createServer } = await import('node:http');
+  const host = createServer((_, res) => { res.setHeader('content-type', 'text/html'); res.end(`<iframe src="${url('/')}" style="width:600px;height:400px"></iframe>`); });
+  await new Promise((r) => host.listen(8202, r));
+  try {
+    await page.goto('http://localhost:8202/');
+    await expect.poll(async () => {
+      const f = page.frames().find((x) => x.url().startsWith(url('/')));
+      return f ? await f.evaluate(() => document.documentElement.style.display).catch(() => '') : '';
+    }, { timeout: 20000 }).toBe('none');
+  } finally { host.close(); }
+  errors.length = 0;
 });

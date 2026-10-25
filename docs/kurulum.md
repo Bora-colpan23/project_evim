@@ -277,3 +277,7 @@ metnini ve rıza ifadesini bir hukukçuya kontrol ettir.
 **Testler.** `npm install && npx playwright install chromium && npm test`.
 Veritabanı kuralları PGlite (WASM Postgres) ile, istemci akışları sahte bir
 Supabase ile test edilir; gerçek Supabase gerekmez.
+
+## Güvenlik (WAF ve alan adı koruması)
+
+Cloudflare WAF, alan adı kilidi/DNSSEC/DMARC ve Supabase bot koruması adımları için `docs/guvenlik.md` dosyasına bakın.

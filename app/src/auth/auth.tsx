@@ -1,5 +1,6 @@
 /* Oturum. Supabase kuruluysa gerçek hesap; değilse bu cihaza özel yerel hesap.
    Uygulama (/uygulama) yalnızca oturumla açılır. */
+import { captchaPending, captchaSpent, captchaToken } from './captcha';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import * as Crypto from 'expo-crypto';
 import { hydrate, storage } from '../domain/storage';
@@ -98,8 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!email || !password) return t('E-posta ve şifreni gir.');
     try {
       if (LIVE) {
+        if (captchaPending()) return t('Güvenlik doğrulaması bitsin, sonra tekrar dene.');
         const c = await backend.client();
-        const { data, error } = await c.auth.signInWithPassword({ email, password });
+        const { data, error } = await c.auth.signInWithPassword({ email, password, options: { captchaToken: captchaToken() ?? undefined } });
+        captchaSpent();
         if (error) return backend.humanError(error);
         const u = await enterLive(data.user);
         const wrong = as && wrongEntry(u, as);
@@ -121,8 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!name || !email || password.length < 8) return t('Adını, e-postanı ve en az 8 karakterli bir şifre gir.');
     try {
       if (LIVE) {
+        if (captchaPending()) return t('Güvenlik doğrulaması bitsin, sonra tekrar dene.');
         const c = await backend.client();
-        const { data, error } = await c.auth.signUp({ email, password, options: { data: { name, role, lang: 'tr' } } });
+        const { data, error } = await c.auth.signUp({ email, password, options: { data: { name, role, lang: 'tr' }, captchaToken: captchaToken() ?? undefined } });
+        captchaSpent();
         if (error) return t('Hesap oluşturulamadı: {m}', { m: backend.humanError(error) });
         if (!data.session) return 'CONFIRM';
         setUser(await enterLive(data.user!)); return null;
@@ -145,8 +150,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!email) return t('E-posta adresini yaz.');
     if (!LIVE) return t('Yerel hesap modunda şifre sıfırlanamaz. Sunucu kurulunca e-posta ile sıfırlanır.');
     try {
+      if (captchaPending()) return t('Güvenlik doğrulaması bitsin, sonra tekrar dene.');
       const c = await backend.client();
-      const { error } = await c.auth.resetPasswordForEmail(email, { redirectTo: CONFIG.publicUrl });
+      const { error } = await c.auth.resetPasswordForEmail(email, { redirectTo: CONFIG.publicUrl, captchaToken: captchaToken() ?? undefined });
+      captchaSpent();
       return error ? t('Bağlantı gönderilemedi.') : null;
     } catch { return t('Bağlantı kurulamadı. Biraz sonra yeniden dene.'); }
   }, []);

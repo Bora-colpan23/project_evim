@@ -83,6 +83,9 @@ export async function openSession(user){
   live.profile = must(await c.from('profiles').select('*').eq('id', user.id).single());
   live.isAdmin = !!(await c.rpc('is_admin')).data;
   if (live.isAdmin) return { admin: true, profile: live.profile };
+  // Askıya alınmış hesap: Auth girişi zaten kapalıdır; bu, açık kalmış oturumu da kapatır.
+  const ban = (await c.from('bans').select('reason').eq('user_id', user.id).maybeSingle()).data;
+  if (ban) { await closeSession(); const e = new Error('banned'); e.banned = ban.reason || ''; throw e; }
   useStorageKey('kiracim-live:' + user.id);
   let cached = null;
   try { cached = JSON.parse(storage.getItem('kiracim-live:' + user.id)); } catch(e){}
@@ -350,6 +353,7 @@ async function apply(op){
 export function humanError(e){
   const m = String(e?.message || e || '');
   if (e?.code === 'EV402' || /Abonelik gerekli/.test(m)) return t('Deneme süren bitti. Kayıtları değiştirmek için abone ol; okuma ve mesajlaşma açık.');
+  if (/user is banned|banned/i.test(m)) return t('Hesabın askıya alındı. Bilgi için info@kiracim.online adresine yaz.');
   if (/Invalid login credentials/i.test(m)) return t('E-posta ya da şifre hatalı.');
   if (/Email not confirmed/i.test(m)) return t('E-posta adresini henüz doğrulamadın. Gelen kutunu kontrol et.');
   if (/User already registered/i.test(m)) return t('Bu e-posta ile bir hesap zaten var. Giriş yapmayı dene.');

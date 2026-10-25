@@ -116,7 +116,7 @@ test('yönetici panelinde ödemeler ve mülk sahibi → kiracı ağacı görün�
   await page.getByRole('button', { name: 'Ödemeler' }).click();
   await expect(page.getByText('Mehmet Kiracı → Ayşe Mülk')).toBeVisible();
   await expect(page.getByText('₺30.000').first()).toBeVisible();
-  await page.getByRole('button', { name: 'Mülk sahipleri' }).click();
+  await page.getByRole('button', { name: 'Bağlantılar' }).click();
   await page.getByText('Ayşe Mülk').first().click();
   await expect(page.getByText('Moda Dairesi').first()).toBeVisible();
   await expect(page.getByText('• Mehmet Kiracı')).toBeVisible();
@@ -300,6 +300,17 @@ test('güvenlik: her sayfada CSP var ve satır içi betiklerin hepsi özetle izi
   }
 });
 
+test('Hostinger: .htaccess (HTTPS, temiz adresler, başlıklar) ve manifest derlemeyle gelir; her uygulama sayfası .html dosyasıdır', () => {
+  const ht = readFileSync(DIST + '/.htaccess', 'utf8');
+  expect(ht).toContain('RewriteRule ^(.+)$ $1.html [L]');
+  expect(ht).toContain('Strict-Transport-Security');
+  expect(ht).toContain('ErrorDocument 404 /404.html');
+  const man = JSON.parse(readFileSync(DIST + '/manifest.webmanifest', 'utf8'));
+  expect(man).toMatchObject({ short_name: 'Kiracım', display: 'standalone', start_url: './' });
+  for (const p of ['giris/kiraci.html', 'giris/mulk-sahibi.html', 'giris/yonetici.html', 'kayit/kiraci.html', 'kayit/mulk-sahibi.html', 'sifre.html', 'katil.html', 'uygulama/mesajlar.html', 'admin/index.html', 'index.html'])
+    expect(existsSync(DIST + '/' + p), p).toBe(true);
+});
+
 test('güvenlik: CSP ihlali yok ve çerçeve koruması başka siteye gömmeyi engeller', async ({ page }) => {
   const violations = [];
   page.on('console', (m) => { if (/Content Security Policy|violates the following/i.test(m.text())) violations.push(m.text()); });
@@ -319,5 +330,105 @@ test('güvenlik: CSP ihlali yok ve çerçeve koruması başka siteye gömmeyi en
       return f ? await f.evaluate(() => document.documentElement.style.display).catch(() => '') : '';
     }, { timeout: 20000 }).toBe('none');
   } finally { host.close(); }
+  await page.goto('about:blank');          // gömülü sayfanın geç gelen hataları sayılmasın
   errors.length = 0;
+});
+
+/** Sahte veritabanına iki mesaj koyar (kiracıdan, mülk sahibinden). */
+async function seedMessages(page) {
+  await page.goto(url('/'));
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('__fakedb'));
+    const id = (n) => d.tables.profiles.find((p) => p.name === n).id;
+    const at = (m) => new Date(Date.now() - m * 60000).toISOString();
+    d.tables.messages.push(
+      { id: 'm1', property_id: 'p1', from_role: 'tenant', by_user: id('Mehmet Kiracı'), body: 'Kira bu ay geç yatacak', at: at(10) },
+      { id: 'm2', property_id: 'p1', from_role: 'landlord', by_user: id('Ayşe Mülk'), body: 'Tamam, haber ver', at: at(5) }
+    );
+    localStorage.setItem('__fakedb', JSON.stringify(d));
+  });
+}
+
+test('yönetici yazışmaları listeler, okur ve uygunsuz mesajı siler; her işlem kayda düşer', async ({ page }) => {
+  await seedMessages(page);
+  await login(page, 'admin@ornek.com');
+  await page.getByRole('button', { name: 'Mesajlar' }).click();
+  await expect(page.getByText('Yazışmalar özeldir')).toBeVisible();
+  await expect(page.getByText('2 mesaj')).toBeVisible();
+  await page.getByText('Moda Dairesi').first().click();
+  await expect(page.getByText('Kira bu ay geç yatacak')).toBeVisible();
+  await expect(page.getByText('Tamam, haber ver')).toBeVisible();
+
+  // Silme önce onay ister.
+  await page.getByRole('button', { name: 'Mesajı sil' }).first().click();
+  await expect(page.getByText('Bu mesaj herkesten silinir')).toBeVisible();
+  await page.getByRole('button', { name: 'Evet, sil' }).click();
+  await expect(page.getByText('Kira bu ay geç yatacak')).toHaveCount(0);
+  expect((await db(page)).tables.messages.map((m) => m.id)).toEqual(['m2']);
+
+  await page.getByRole('button', { name: 'Geri' }).click();
+  await page.getByRole('button', { name: 'Kayıt', exact: true }).click();
+  await expect(page.getByText('Mesaj silindi')).toBeVisible();
+  await expect(page.getByText('Yazışma okundu').first()).toBeVisible();
+  const log = (await db(page)).tables.admin_audit.map((a) => a.action);
+  expect(log).toEqual(['messages.view', 'message.delete']);
+});
+
+test('yönetici hesabı gerekçeyle yasaklar; yasaklı giriş yapamaz; yasak kalkınca girer', async ({ page }) => {
+  await login(page, 'admin@ornek.com');
+  await page.getByRole('button', { name: 'Kullanıcılar' }).click();
+  await page.getByLabel('Ara').fill('kiraci@ornek.com');
+  await page.getByRole('button', { name: 'Yasakla', exact: true }).click();
+  // Gerekçesiz olmaz.
+  await page.getByRole('button', { name: 'Hesabı yasakla' }).click();
+  await expect(page.getByText('Yasaklama için gerekçe yaz.')).toBeVisible();
+  await page.getByLabel('Yasaklama gerekçesi').fill('Taciz içerikli mesajlar');
+  await page.getByRole('button', { name: 'Hesabı yasakla' }).click();
+  await expect(page.getByText('Askıda: Taciz içerikli mesajlar')).toBeVisible();
+  expect((await db(page)).tables.bans).toHaveLength(1);
+  // Yönetici kendini yasaklayamaz: kartında yasak düğmesi çıkmaz.
+  await page.getByLabel('Ara').fill('admin@ornek.com');
+  await expect(page.getByText('admin@ornek.com').last()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Yasakla', exact: true })).toHaveCount(0);
+
+  // Yasaklı kiracı giriş yapamaz; gerekçeyi görür.
+  await login(page, 'kiraci@ornek.com');
+  await expect(page.getByText('Hesabın askıya alındı: Taciz içerikli mesajlar')).toBeVisible();
+  await expect(page).not.toHaveURL(/uygulama/);
+
+  // Yasak kalkınca girer.
+  await login(page, 'admin@ornek.com');
+  await page.getByRole('button', { name: 'Kullanıcılar' }).click();
+  await page.getByLabel('Ara').fill('kiraci@ornek.com');
+  await page.getByRole('button', { name: 'Yasağı kaldır' }).click();
+  await expect(page.getByText('Askıda: ')).toHaveCount(0);
+  expect((await db(page)).tables.bans).toHaveLength(0);
+  await login(page, 'kiraci@ornek.com');
+  await expect(page.getByText('Moda Dairesi').first()).toBeVisible();
+
+  await login(page, 'admin@ornek.com');
+  await page.getByRole('button', { name: 'Kayıt', exact: true }).click();
+  await expect(page.getByText('Hesap yasaklandı')).toBeVisible();
+  await expect(page.getByText('Yasak kaldırıldı')).toBeVisible();
+});
+
+test('yönetici mesajdaki göndereni oradan yasaklayabilir; bağlantılar sekmesi bağlantısız kiracıyı gösterir', async ({ page }) => {
+  await seedMessages(page);
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem('__fakedb'));
+    d.users.push({ id: 'u-yeni', email: 'yeni@ornek.com', password: 'x', meta: { name: 'Yeni Kiracı', role: 'tenant' } });
+    d.tables.profiles.push({ id: 'u-yeni', role: 'tenant', name: 'Yeni Kiracı', phone: '', lang: 'tr', settings: {}, created_at: new Date().toISOString() });
+    localStorage.setItem('__fakedb', JSON.stringify(d));
+  });
+  await login(page, 'admin@ornek.com');
+  await page.getByRole('button', { name: 'Bağlantılar' }).click();
+  await expect(page.getByText('Mülke bağlı olmayan kiracılar (1)')).toBeVisible();
+  await expect(page.getByText('Yeni Kiracı · yeni@ornek.com')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Mesajlar' }).click();
+  await page.getByText('Moda Dairesi').first().click();
+  await page.getByRole('button', { name: 'Yasakla', exact: true }).first().click();      // en eski mesaj kiracıdan
+  await page.getByLabel('Yasaklama gerekçesi').fill('Spam');
+  await page.getByRole('button', { name: 'Hesabı yasakla' }).click();
+  await expect.poll(async () => (await db(page)).tables.bans.map((b) => b.reason)).toEqual(['Spam']);
 });

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, Linking, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../auth/auth';
-import { loadAdmin, decide, previewUrl, humanError } from '../domain/admin';
+import { loadAdmin, decide, previewUrl, humanError, setBan, loadThreads, loadMessages, deleteMessage, loadAudit } from '../domain/admin';
 import { t } from '../domain/i18n';
 import { tl } from '../domain/util';
 import { Button, Chip, Field, PressScale, Text } from '../ui/kit';
@@ -63,12 +63,14 @@ export default function AdminPanel() {
               <Stats d={data} />
               <Seg scroll value={tab} onChange={setTab} options={[
                 ['queue', t('Denetim') + (data.stats.pending ? ' (' + data.stats.pending + ')' : '')],
-                ['pay', t('Ödemeler')], ['landlords', t('Mülk sahipleri')], ['users', t('Kullanıcılar')]
+                ['pay', t('Ödemeler')], ['conn', t('Bağlantılar')], ['msgs', t('Mesajlar')], ['users', t('Kullanıcılar')], ['audit', t('Kayıt')]
               ]} />
               {tab === 'queue' && <Queue d={data} reload={load} />}
               {tab === 'pay' && <Payments d={data} />}
-              {tab === 'landlords' && <Landlords d={data} />}
-              {tab === 'users' && <Users d={data} />}
+              {tab === 'conn' && <Landlords d={data} />}
+              {tab === 'msgs' && <Messages d={data} reload={load} />}
+              {tab === 'users' && <Users d={data} reload={load} />}
+              {tab === 'audit' && <Audit />}
             </>
           ) : null}
         </View>
@@ -95,6 +97,7 @@ function Stats({ d }: { d: Data }) {
       <Stat label={t('Mülk sahibi')} value={String(s.landlords)} sub={s.subscribed + ' ' + t('abone')} />
       <Stat label={t('Kiracı')} value={String(s.tenants)} sub={s.props + ' ' + t('mülk')} />
       <Stat label={t('Denetim bekleyen')} value={String(s.pending)} />
+      <Stat label={t('Askıdaki hesap')} value={String(s.banned || 0)} />
       <Stat label={t('Bu ay onaylı kira')} value={tl(s.approvedThisMonth)} sub={tl(s.reviewThisMonth) + ' ' + t('bekliyor')} />
     </View>
   );
@@ -214,9 +217,16 @@ function Payments({ d }: { d: Data }) {
 
 function Landlords({ d }: { d: Data }) {
   const [open, setOpen] = useState<string | null>(null);
-  if (!d.landlords.length) return <Empty>{t('Henüz mülk sahibi yok.')}</Empty>;
+  if (!d.landlords.length && !d.unlinked.length) return <Empty>{t('Henüz mülk sahibi yok.')}</Empty>;
   return (
     <Stack>
+      {d.unlinked.length ? (
+        <Card gap={6}>
+          <H2>{t('Mülke bağlı olmayan kiracılar')} ({d.unlinked.length})</H2>
+          <Muted>{t('Kayıt oldu ama davet kodunu girmedi.')}</Muted>
+          {d.unlinked.map((u: any) => <Muted key={u.id}>• {u.name || u.email} · {u.email}{u.banned ? ' · ' + t('Askıda') : ''}</Muted>)}
+        </Card>
+      ) : null}
       {d.landlords.map((l: any) => {
         const on = open === l.id;
         return (
@@ -252,26 +262,184 @@ function Landlords({ d }: { d: Data }) {
   );
 }
 
-/* ---------------- kullanıcılar ---------------- */
+/* ---------------- kullanıcılar ve yasaklama ---------------- */
 
-function Users({ d }: { d: Data }) {
+function BanBox({ u, reload }: { u: any; reload: () => void }) {
+  const c = useColors();
+  const [open, setOpen] = useState(false);
+  const [why, setWhy] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const run = async (ban: boolean) => {
+    if (ban && !why.trim()) { setErr(t('Yasaklama için gerekçe yaz.')); return; }
+    setBusy(true); setErr(null);
+    try { await setBan(u.id, ban, why.trim()); setOpen(false); setWhy(''); await reload(); } catch (e) { setErr(humanError(e)); }
+    setBusy(false);
+  };
+  if (u.is_admin) return null;
+  return (
+    <View style={{ gap: 10 }}>
+      {u.banned ? (
+        <Row wrap>
+          <Text v="small" color={c.badInk} style={{ flex: 1, minWidth: 200 }}>{t('Askıda')}: {u.ban_reason || '—'}{u.banned_at ? ' · ' + day(u.banned_at) : ''}</Text>
+          <Button kind="ghost" title={t('Yasağı kaldır')} onPress={() => run(false)} loading={busy} />
+        </Row>
+      ) : open ? (
+        <View style={{ gap: 10 }}>
+          <Field label={t('Yasaklama gerekçesi')} value={why} onChangeText={setWhy} placeholder={t('Kullanıcıya gösterilir')} maxLength={240} />
+          <Row wrap>
+            <Button kind="ghost" title={t('Vazgeç')} onPress={() => { setOpen(false); setErr(null); }} />
+            <Button title={t('Hesabı yasakla')} onPress={() => run(true)} loading={busy} />
+          </Row>
+        </View>
+      ) : <Button kind="ghost" title={t('Yasakla')} onPress={() => setOpen(true)} />}
+      {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
+    </View>
+  );
+}
+
+function Users({ d, reload }: { d: Data; reload: () => void }) {
   const [q, setQ] = useState('');
-  const list = d.users.filter((u: any) => !q.trim() || [u.name, u.email, u.phone].join(' ').toLocaleLowerCase('tr').includes(q.trim().toLocaleLowerCase('tr')));
+  const [f, setF] = useState('all');
+  const list = d.users.filter((u: any) => (f === 'all' || (f === 'banned' ? u.banned : u.role === f)) &&
+    (!q.trim() || [u.name, u.email, u.phone].join(' ').toLocaleLowerCase('tr').includes(q.trim().toLocaleLowerCase('tr'))));
   return (
     <Stack>
       <Field label={t('Ara')} value={q} onChangeText={setQ} placeholder={t('Ad, e-posta ya da telefon')} />
-      {list.map((u: any) => (
-        <Card key={u.id} gap={4}>
+      <Seg scroll value={f} onChange={setF} options={[['all', t('Hepsi')], ['landlord', t('Mülk sahibi')], ['tenant', t('Kiracı')], ['banned', t('Askıda')]]} />
+      {list.length ? list.map((u: any) => (
+        <Card key={u.id} gap={8}>
           <Row between wrap>
             <View style={{ flex: 1, minWidth: 200 }}><H2>{u.name || u.email}</H2><Muted>{u.email}{u.phone ? ' · ' + u.phone : ''}</Muted></View>
             <Row gap={8} wrap>
               {u.is_admin ? <Chip tone="accent" label={t('Yönetici')} /> : <Chip label={u.role === 'landlord' ? t('Mülk sahibi') : t('Kiracı')} />}
               {u.role === 'landlord' ? <Chip tone={u.subscribed ? 'ok' : 'neutral'} label={u.subscribed ? t('Abone') : t('Abonelik yok')} /> : null}
+              {u.banned ? <Chip tone="bad" label={t('Askıda')} /> : null}
             </Row>
           </Row>
           <Muted>{t('Kayıt')}: {day(u.created_at)}</Muted>
+          <BanBox u={u} reload={reload} />
+        </Card>
+      )) : <Empty>{t('Kullanıcı yok.')}</Empty>}
+    </Stack>
+  );
+}
+
+/* ---------------- mesajlar ---------------- */
+
+function Messages({ d, reload }: { d: Data; reload: () => void }) {
+  const c = useColors();
+  const [threads, setThreads] = useState<any[] | null>(null);
+  const [open, setOpen] = useState<any | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [q, setQ] = useState('');
+  useEffect(() => { loadThreads().then(setThreads).catch((e) => setErr(humanError(e))); }, []);
+  if (open) return <Thread th={open} d={d} reload={reload} onBack={() => setOpen(null)} />;
+  const list = (threads || []).filter((x) => !q.trim() || [x.name, x.owner_name, x.tenants, x.last_body].join(' ').toLocaleLowerCase('tr').includes(q.trim().toLocaleLowerCase('tr')));
+  return (
+    <Stack>
+      <Card gap={4}>
+        <Text v="small" color={c.warnInk}>{t('Yazışmalar özeldir. Bir yazışmayı açtığında okuman, adın ve zamanla birlikte Kayıt sekmesine yazılır.')}</Text>
+      </Card>
+      <Field label={t('Ara')} value={q} onChangeText={setQ} placeholder={t('Mülk, kişi ya da mesaj metni')} />
+      {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
+      {!threads && !err ? <View style={{ alignItems: 'center', paddingVertical: 20 }}><Loader size={64} /></View> : null}
+      {threads && !list.length ? <Empty>{t('Yazışma yok.')}</Empty> : null}
+      {list.map((x) => (
+        <Card key={x.property_id} gap={6} onPress={() => setOpen(x)}>
+          <Row between wrap>
+            <H2>{x.name}</H2>
+            <Row gap={8} wrap><Chip label={x.msg_count + ' ' + t('mesaj')} /><Muted>{day(x.last_at)}</Muted></Row>
+          </Row>
+          <Muted>{t('Mülk sahibi')}: {x.owner_name || '—'} · {t('Kiracı')}: {x.tenants || '—'}</Muted>
+          <Text v="small" numberOfLines={2}>{x.last_body || t('Fotoğraf')}</Text>
         </Card>
       ))}
+    </Stack>
+  );
+}
+
+function Thread({ th, d, reload, onBack }: { th: any; d: Data; reload: () => void; onBack: () => void }) {
+  const c = useColors();
+  const [rows, setRows] = useState<any[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { loadMessages(th.property_id).then(setRows).catch((e) => setErr(humanError(e))); }, [th.property_id]);
+  return (
+    <Stack>
+      <Row between wrap>
+        <Button kind="ghost" title={t('Geri')} onPress={onBack} />
+        <Muted>{th.name} · {th.owner_name} → {th.tenants}</Muted>
+      </Row>
+      {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
+      {!rows && !err ? <View style={{ alignItems: 'center', paddingVertical: 20 }}><Loader size={64} /></View> : null}
+      {rows ? rows.map((m) => <Msg key={m.id} m={m} d={d} reload={reload} removed={() => setRows((r) => (r || []).filter((x) => x.id !== m.id))} />) : null}
+    </Stack>
+  );
+}
+
+function Msg({ m, d, reload, removed }: { m: any; d: Data; reload: () => void; removed: () => void }) {
+  const c = useColors();
+  const [url, setUrl] = useState<string | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { if (m.image_path) previewUrl(m.image_path).then(setUrl).catch(() => {}); }, [m.image_path]);
+  const sender = d.users.find((u: any) => u.id === m.by_user);
+  const del = async () => { setBusy(true); setErr(null); try { await deleteMessage(m.id); removed(); } catch (e) { setErr(humanError(e)); } setBusy(false); };
+  const sys = m.from_role === 'system';
+  return (
+    <View style={{ gap: 6, backgroundColor: sys ? 'transparent' : m.from_role === 'landlord' ? c.rose : c.peach, borderRadius: radius.md, padding: sys ? 4 : 14 }}>
+      <Row between wrap>
+        <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{sys ? t('Sistem') : (m.by_name || '—') + ' · ' + (m.from_role === 'landlord' ? t('Mülk sahibi') : t('Kiracı'))}</Text>
+        <Muted>{new Date(m.at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Muted>
+      </Row>
+      {m.body ? <Text v="small" selectable>{m.body}</Text> : null}
+      {m.image_path ? (
+        url ? <Image source={{ uri: url }} style={{ width: 220, height: 160, borderRadius: radius.sm }} resizeMode="cover" accessibilityLabel={t('Mesaj fotoğrafı')} />
+          : <Muted>{t('Fotoğraf yükleniyor…')}</Muted>
+      ) : null}
+      {!sys ? (
+        asking ? (
+          <Row wrap>
+            <Text v="small" color={c.badInk}>{t('Bu mesaj herkesten silinir. Emin misin?')}</Text>
+            <Button kind="ghost" title={t('Vazgeç')} onPress={() => setAsking(false)} />
+            <Button title={t('Evet, sil')} onPress={del} loading={busy} />
+          </Row>
+        ) : <Row wrap><Button kind="ghost" title={t('Mesajı sil')} onPress={() => setAsking(true)} style={{ minHeight: 40 }} /></Row>
+      ) : null}
+      {sender && !sender.is_admin ? <BanBox u={sender} reload={reload} /> : null}
+      {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
+    </View>
+  );
+}
+
+/* ---------------- yönetici işlem kaydı ---------------- */
+
+const ACT: Record<string, string> = {
+  'user.ban': 'Hesap yasaklandı', 'user.unban': 'Yasak kaldırıldı', 'messages.view': 'Yazışma okundu', 'message.delete': 'Mesaj silindi',
+  'review.approved': 'Yükleme onaylandı', 'review.rejected': 'Yükleme reddedildi'
+};
+
+function Audit() {
+  const c = useColors();
+  const [rows, setRows] = useState<any[] | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => { loadAudit().then(setRows).catch((e) => setErr(humanError(e))); }, []);
+  return (
+    <Stack>
+      <Muted>{t('Yöneticinin yaptığı hassas işlemler. Kayıtlar değiştirilemez ve silinemez.')}</Muted>
+      {err ? <Text v="small" color={c.badInk}>{err}</Text> : null}
+      {!rows && !err ? <View style={{ alignItems: 'center', paddingVertical: 20 }}><Loader size={64} /></View> : null}
+      {rows && !rows.length ? <Empty>{t('Henüz kayıt yok.')}</Empty> : null}
+      {rows ? rows.map((a) => (
+        <Card key={a.id} gap={4}>
+          <Row between wrap>
+            <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{t(ACT[a.action] || a.action)}</Text>
+            <Muted>{new Date(a.at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</Muted>
+          </Row>
+          <Muted>{a.admin_name || '—'} · {a.target}{a.detail?.reason ? ' · ' + a.detail.reason : ''}{a.detail?.note ? ' · ' + a.detail.note : ''}</Muted>
+        </Card>
+      )) : null}
     </Stack>
   );
 }

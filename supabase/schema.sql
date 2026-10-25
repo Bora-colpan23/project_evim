@@ -223,6 +223,26 @@ create table if not exists public.reviews (
 create index if not exists reviews_status on public.reviews (status, created_at desc);
 create index if not exists reviews_path   on public.reviews (path);
 
+-- v6: yasaklama ve yönetici denetim kaydı.
+-- bans: askıya alınan hesaplar. Satırı yalnızca yönetici işlevi (admin_set_ban) yazar.
+create table if not exists public.bans (
+  user_id   uuid primary key references public.profiles(id) on delete cascade,
+  reason    text not null default '',
+  banned_by uuid references public.profiles(id) on delete set null,
+  banned_at timestamptz not null default now()
+);
+-- admin_audit: yöneticinin yaptığı her hassas işlem (yasaklama, mesaj okuma/silme, yükleme kararı).
+-- Yalnızca yönetici okur; hiç kimse (yönetici dahil) satırı değiştiremez ya da silemez.
+create table if not exists public.admin_audit (
+  id       bigserial primary key,
+  admin_id uuid references public.profiles(id) on delete set null,
+  action   text not null,
+  target   text not null default '',
+  detail   jsonb not null default '{}'::jsonb,
+  at       timestamptz not null default now()
+);
+create index if not exists admin_audit_at on public.admin_audit (at desc);
+
 create index if not exists memberships_user   on public.memberships (user_id);
 create index if not exists payments_prop      on public.payments (property_id);
 create index if not exists requests_prop      on public.requests (property_id);
@@ -257,6 +277,12 @@ returns boolean language sql stable security definer set search_path = public as
   select exists (select 1 from public.admins where user_id = auth.uid())
 $$;
 grant execute on function public.is_admin() to authenticated;
+
+create or replace function public.is_banned()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.bans where user_id = auth.uid())
+$$;
+grant execute on function public.is_banned() to authenticated;
 
 -- Bu yükleme denetimden geçmemiş mi? (kayıt yoksa eski/denetimsiz sayılır, görünür)
 -- Uygulama belge ve fatura yollarını "sb:<yol>" biçiminde saklar; depodaki gerçek ad önek olmadan.
@@ -303,6 +329,8 @@ alter table public.notifications      enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.admins             enable row level security;
 alter table public.reviews            enable row level security;
+alter table public.bans               enable row level security;
+alter table public.admin_audit        enable row level security;
 
 -- Politikaları yeniden oluşturabilmek için önce sil.
 do $$
@@ -424,6 +452,26 @@ create policy notifications_delete on public.notifications for delete to authent
   using (user_id = auth.uid());
 create policy push_own on public.push_subscriptions for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- yasaklama kayıtları: yönetici hepsini, kullanıcı yalnızca kendininkini (askıya alındığını öğrenmek için) okur
+create policy bans_admin on public.bans for select to authenticated using (public.is_admin());
+create policy bans_self  on public.bans for select to authenticated using (user_id = auth.uid());
+create policy audit_admin on public.admin_audit for select to authenticated using (public.is_admin());
+
+-- Askıya alınmış hesap hiçbir içerik tablosunu okuyamaz ya da yazamaz (kısıtlayıcı politika:
+-- diğer tüm politikalara ek olarak sağlanması gerekir). profiles'ta yalnızca güncelleme kapanır;
+-- böylece uygulama oturumu açıp "askıya alındı" bilgisini gösterebilir.
+do $$
+declare t text;
+begin
+  foreach t in array array['properties','property_shared','memberships','invites','payments','rent_history',
+                           'requests','messages','documents','expenses','notifications','push_subscriptions','reviews'] loop
+    execute format('create policy not_banned on public.%I as restrictive for all to authenticated
+                    using (not public.is_banned()) with check (not public.is_banned())', t);
+  end loop;
+end $$;
+create policy not_banned on public.profiles as restrictive for update to authenticated
+  using (not public.is_banned()) with check (not public.is_banned());
 
 -- ---------------------------------------------------------------------
 -- 4. Koruma tetikleyicileri
@@ -594,6 +642,7 @@ declare
 begin
   select * into me from public.profiles where id = auth.uid();
   if me.id is null then raise exception 'Oturum açılmamış' using errcode = '42501'; end if;
+  if public.is_banned() then raise exception 'Hesap askıya alındı' using errcode = '42501'; end if;
   if me.role <> 'tenant' then raise exception 'Davetler kiracı hesapları içindir' using errcode = '22023'; end if;
 
   select * into inv from public.invites where code = upper(trim(invite_code)) for update;
@@ -871,6 +920,7 @@ on conflict (id) do nothing;
 drop policy if exists evim_read on storage.objects;
 drop policy if exists evim_write on storage.objects;
 drop policy if exists evim_delete on storage.objects;
+drop policy if exists evim_not_banned on storage.objects;
 -- Denetime bağlı dosyalar (dekont, belge, fatura): yükleyen ve yönetici her zaman, ev üyeleri onaydan sonra okur.
 create policy evim_read on storage.objects for select to authenticated
   using (bucket_id = 'evim' and (
@@ -881,6 +931,8 @@ create policy evim_write on storage.objects for insert to authenticated
   with check (bucket_id = 'evim' and public.is_member((storage.foldername(name))[1]));
 create policy evim_delete on storage.objects for delete to authenticated
   using (bucket_id = 'evim' and public.is_owner((storage.foldername(name))[1]));
+create policy evim_not_banned on storage.objects as restrictive for all to authenticated
+  using (not public.is_banned()) with check (not public.is_banned());
 
 do $$
 declare t text;
@@ -1034,9 +1086,11 @@ create trigger on_review_change after update on public.reviews
   for each row execute function public.on_review_change();
 
 -- Yönetici paneli: tüm kullanıcılar (e-postayla). Yalnızca yöneticiye döner.
+drop function if exists public.admin_users();
 create or replace function public.admin_users()
 returns table (id uuid, email text, name text, role text, phone text, created_at timestamptz,
-               is_admin boolean, subscribed boolean, expires_at timestamptz)
+               is_admin boolean, subscribed boolean, expires_at timestamptz,
+               banned boolean, ban_reason text, banned_at timestamptz)
 language plpgsql stable security definer set search_path = public as $$
 begin
   if not public.is_admin() then raise exception 'Yönetici yetkisi gerekli' using errcode = '42501'; end if;
@@ -1044,13 +1098,124 @@ begin
     select p.id, u.email::text, p.name, p.role, p.phone, p.created_at,
            exists (select 1 from public.admins a where a.user_id = p.id),
            coalesce(s.active and (s.expires_at is null or s.expires_at > now()), false),
-           s.expires_at
+           s.expires_at,
+           b.user_id is not null, b.reason, b.banned_at
     from public.profiles p
     left join auth.users u on u.id = p.id
     left join public.subscriptions s on s.user_id = p.id
+    left join public.bans b on b.user_id = p.id
     order by p.created_at desc;
 end $$;
 grant execute on function public.admin_users() to authenticated;
+
+-- Yönetici işlemi kaydı (yalnızca bu dosyadaki yönetici işlevleri çağırır).
+create or replace function public.audit(act text, tgt text, det jsonb default '{}'::jsonb)
+returns void language sql security definer set search_path = public as $$
+  insert into public.admin_audit (admin_id, action, target, detail) values (auth.uid(), act, tgt, coalesce(det, '{}'::jsonb))
+$$;
+revoke execute on function public.audit(text, text, jsonb) from public, authenticated;
+
+-- Yasakla / yasağı kaldır. Yönetici kendini ya da başka bir yöneticiyi yasaklayamaz.
+-- Yasak, (1) bans satırıyla tüm verilere erişimi keser, (2) Supabase Auth'ta girişi ve token yenilemeyi
+-- kapatır, (3) açık oturumları siler. Üçüncü adım Supabase dışı ortamda (testte) atlanır.
+create or replace function public.admin_set_ban(uid uuid, ban boolean, why text default '')
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'Yönetici yetkisi gerekli' using errcode = '42501'; end if;
+  if uid = auth.uid() then raise exception 'Kendini yasaklayamazsın' using errcode = '22023'; end if;
+  if exists (select 1 from public.admins where user_id = uid) then raise exception 'Yönetici yasaklanamaz' using errcode = '22023'; end if;
+  if not exists (select 1 from public.profiles where id = uid) then raise exception 'Kullanıcı bulunamadı' using errcode = 'P0002'; end if;
+  if ban then
+    if coalesce(trim(why), '') = '' then raise exception 'Yasaklama için gerekçe yaz' using errcode = '22023'; end if;
+    insert into public.bans (user_id, reason, banned_by) values (uid, trim(why), auth.uid())
+    on conflict (user_id) do update set reason = excluded.reason, banned_by = excluded.banned_by, banned_at = now();
+  else
+    delete from public.bans where user_id = uid;
+  end if;
+  begin
+    update auth.users set banned_until = case when ban then 'infinity'::timestamptz else null end where id = uid;
+    if ban then delete from auth.sessions where user_id = uid; end if;
+  exception when undefined_column or undefined_table then null;
+  end;
+  perform public.audit(case when ban then 'user.ban' else 'user.unban' end, uid::text, jsonb_build_object('reason', coalesce(trim(why), '')));
+end $$;
+grant execute on function public.admin_set_ban(uuid, boolean, text) to authenticated;
+
+-- Yazışma listesi: mülk başına son mesaj ve sayı (içerik değil, özet). Yalnızca yöneticiye döner.
+create or replace function public.admin_threads()
+returns table (property_id text, name text, owner_id uuid, owner_name text, tenants text,
+               msg_count bigint, last_at timestamptz, last_body text)
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'Yönetici yetkisi gerekli' using errcode = '42501'; end if;
+  return query
+    select p.id, p.name, p.owner_id, o.name,
+           coalesce((select string_agg(coalesce(nullif(m.display_name, ''), pr.name), ', ')
+                     from public.memberships m left join public.profiles pr on pr.id = m.user_id
+                     where m.property_id = p.id and m.role = 'tenant'), ''),
+           (select count(*) from public.messages x where x.property_id = p.id),
+           lm.at, lm.body
+    from public.properties p
+    left join public.profiles o on o.id = p.owner_id
+    left join lateral (select x.at, x.body from public.messages x where x.property_id = p.id order by x.at desc limit 1) lm on true
+    where exists (select 1 from public.messages x where x.property_id = p.id)
+    order by lm.at desc;
+end $$;
+grant execute on function public.admin_threads() to authenticated;
+
+-- Bir mülkün yazışması. Her okuma denetim kaydına yazılır.
+create or replace function public.admin_messages(pid text, lim int default 300)
+returns table (id text, at timestamptz, from_role text, by_user uuid, by_name text, body text, image_path text)
+language plpgsql security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'Yönetici yetkisi gerekli' using errcode = '42501'; end if;
+  perform public.audit('messages.view', pid);
+  return query
+    select m.id, m.at, m.from_role, m.by_user, pr.name, m.body, m.image_path
+    from public.messages m left join public.profiles pr on pr.id = m.by_user
+    where m.property_id = pid
+    order by m.at desc limit greatest(1, least(coalesce(lim, 300), 1000));
+end $$;
+grant execute on function public.admin_messages(text, int) to authenticated;
+
+-- Uygunsuz mesajı siler (içerik kaydı tutulmaz; kim, hangi mülk, ne zaman denetim kaydında kalır).
+create or replace function public.admin_delete_message(mid text)
+returns void language plpgsql security definer set search_path = public as $$
+declare m public.messages;
+begin
+  if not public.is_admin() then raise exception 'Yönetici yetkisi gerekli' using errcode = '42501'; end if;
+  select * into m from public.messages where id = mid;
+  if m.id is null then raise exception 'Mesaj bulunamadı' using errcode = 'P0002'; end if;
+  delete from public.messages where id = mid;
+  perform public.audit('message.delete', m.property_id, jsonb_build_object('message', mid, 'by', m.by_user));
+end $$;
+grant execute on function public.admin_delete_message(text) to authenticated;
+
+create or replace function public.admin_audit_log(lim int default 200)
+returns table (id bigint, at timestamptz, admin_name text, action text, target text, detail jsonb)
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.is_admin() then raise exception 'Yönetici yetkisi gerekli' using errcode = '42501'; end if;
+  return query
+    select a.id, a.at, pr.name, a.action, a.target, a.detail
+    from public.admin_audit a left join public.profiles pr on pr.id = a.admin_id
+    order by a.at desc, a.id desc limit greatest(1, least(coalesce(lim, 200), 1000));
+end $$;
+grant execute on function public.admin_audit_log(int) to authenticated;
+
+-- Yükleme kararları da denetim kaydına düşer.
+create or replace function public.audit_review()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.status is distinct from old.status and new.status in ('approved','rejected') and auth.uid() is not null then
+    perform public.audit('review.' || new.status, new.kind || ':' || new.property_id || ':' || new.ref_id,
+                         jsonb_build_object('note', new.note));
+  end if;
+  return new;
+end $$;
+drop trigger if exists audit_review on public.reviews;
+create trigger audit_review after update on public.reviews
+  for each row execute function public.audit_review();
 
 -- Denetim kaydı olmayan eski yüklemeler (bu bölüm eklenmeden önce yüklenenler) onaylı sayılır.
 insert into public.reviews (kind, property_id, ref_id, uploader, label, path, amount, status, note)

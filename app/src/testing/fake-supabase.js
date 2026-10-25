@@ -5,7 +5,7 @@
 
 const KEY = '__fakedb';
 const TABLES = ['profiles','properties','property_shared','memberships','invites','payments','rent_history',
-                'requests','messages','documents','expenses','notifications','push_subscriptions','subscriptions','device_tokens','admins','reviews'];
+                'requests','messages','documents','expenses','notifications','push_subscriptions','subscriptions','device_tokens','admins','reviews','bans','admin_audit'];
 
 function load(){
   try { const d = JSON.parse(localStorage.getItem(KEY)); if (d){ TABLES.forEach(t => d.tables[t] = d.tables[t] || []); return d; } } catch(e){}
@@ -22,7 +22,7 @@ const KEYS = {
   profiles:['id'], properties:['id'], property_shared:['property_id'], memberships:['property_id','user_id'],
   invites:['code'], payments:['property_id','month'], rent_history:['id'], requests:['id'], messages:['id'],
   documents:['id'], expenses:['id'], notifications:['id'], push_subscriptions:['endpoint'], subscriptions:['user_id'], device_tokens:['token'],
-  admins:['user_id'], reviews:['kind','property_id','ref_id']
+  admins:['user_id'], reviews:['kind','property_id','ref_id'], bans:['user_id'], admin_audit:['id']
 };
 
 function defaults(table, row, db){
@@ -258,9 +258,53 @@ export function createClient(url, key, opts){
         return { data: db.tables.profiles.map(p => {
           const u = db.users.find(x => x.id === p.id) || {};
           const s = db.tables.subscriptions.find(x => x.user_id === p.id);
+          const b = db.tables.bans.find(x => x.user_id === p.id);
           return { id:p.id, email:u.email || '', name:p.name, role:p.role, phone:p.phone || '', created_at:p.created_at, is_admin:isAdmin(db, p.id),
-                   subscribed: !!(s && s.active && (!s.expires_at || Date.parse(s.expires_at) > Date.now())), expires_at: s ? s.expires_at : null };
+                   subscribed: !!(s && s.active && (!s.expires_at || Date.parse(s.expires_at) > Date.now())), expires_at: s ? s.expires_at : null,
+                   banned: !!b, ban_reason: b ? b.reason : null, banned_at: b ? b.banned_at : null };
         }), error:null };
+      }
+      if (/^admin_(set_ban|threads|messages|delete_message|audit_log)$/.test(name)){
+        if (!isAdmin(db, me)) return { data:null, error:{ message:'Yönetici yetkisi gerekli', code:'42501' } };
+        const audit = (action, target, detail) => db.tables.admin_audit.push({ id:db.tables.admin_audit.length + 1, admin_id:me, action, target, detail:detail || {}, at:now() });
+        const nameOfUser = id => (db.tables.profiles.find(p => p.id === id) || {}).name || null;
+        if (name === 'admin_set_ban'){
+          if (args.uid === me) return { data:null, error:{ message:'Kendini yasaklayamazsın', code:'22023' } };
+          if (isAdmin(db, args.uid)) return { data:null, error:{ message:'Yönetici yasaklanamaz', code:'22023' } };
+          if (args.ban){
+            if (!String(args.why || '').trim()) return { data:null, error:{ message:'Yasaklama için gerekçe yaz', code:'22023' } };
+            db.tables.bans = db.tables.bans.filter(b => b.user_id !== args.uid);
+            db.tables.bans.push({ user_id:args.uid, reason:String(args.why).trim(), banned_by:me, banned_at:now() });
+          } else db.tables.bans = db.tables.bans.filter(b => b.user_id !== args.uid);
+          audit(args.ban ? 'user.ban' : 'user.unban', args.uid, { reason: args.why || '' });
+          persist(db);
+          return { data:null, error:null };
+        }
+        if (name === 'admin_threads'){
+          const out = db.tables.properties.map(p => {
+            const ms = db.tables.messages.filter(m => m.property_id === p.id).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+            if (!ms.length) return null;
+            return { property_id:p.id, name:p.name, owner_id:p.owner_id, owner_name:nameOfUser(p.owner_id) || '',
+                     tenants: db.tables.memberships.filter(m => m.property_id === p.id && m.role === 'tenant').map(m => m.display_name || nameOfUser(m.user_id)).join(', '),
+                     msg_count:ms.length, last_at:ms[0].at, last_body:ms[0].body };
+          }).filter(Boolean).sort((a, b) => String(b.last_at).localeCompare(String(a.last_at)));
+          return { data: out, error:null };
+        }
+        if (name === 'admin_messages'){
+          audit('messages.view', args.pid); persist(db);
+          const ms = db.tables.messages.filter(m => m.property_id === args.pid).sort((a, b) => String(b.at).localeCompare(String(a.at)))
+            .map(m => ({ id:m.id, at:m.at, from_role:m.from_role, by_user:m.by_user, by_name:nameOfUser(m.by_user), body:m.body, image_path:m.image_path || null }));
+          return { data: ms, error:null };
+        }
+        if (name === 'admin_delete_message'){
+          const m = db.tables.messages.find(x => x.id === args.mid);
+          if (!m) return { data:null, error:{ message:'Mesaj bulunamadı', code:'P0002' } };
+          db.tables.messages = db.tables.messages.filter(x => x.id !== args.mid);
+          audit('message.delete', m.property_id, { message:args.mid, by:m.by_user }); persist(db);
+          return { data:null, error:null };
+        }
+        if (name === 'admin_audit_log')
+          return { data: db.tables.admin_audit.slice().reverse().map(a => ({ id:a.id, at:a.at, admin_name:nameOfUser(a.admin_id), action:a.action, target:a.target, detail:a.detail })), error:null };
       }
       if (name === 'my_access') return { data: accessOf(db, me), error:null };
       if (name === 'delete_my_account'){

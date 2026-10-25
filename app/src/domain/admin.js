@@ -73,11 +73,45 @@ export function derive({ users, props, members, invites, payments, reviews }){
     props: props.length,
     subscribed: users.filter(u => u.role === 'landlord' && u.subscribed).length,
     pending: queue.filter(r => r.status === 'pending').length,
+    banned: users.filter(u => u.banned).length,
     approvedThisMonth: sum(pays.filter(p => p.month === month && p.status === 'approved')),
     reviewThisMonth: sum(pays.filter(p => p.month === month && (p.status === 'review' || p.status === 'partial'))),
     month
   };
-  return { users, landlords, payments: pays, queue, stats };
+  // Hiçbir mülke bağlı olmayan kiracılar (kayıt oldu, davet kodunu girmedi).
+  const linked = new Set(members.map(m => m.user_id));
+  const unlinked = users.filter(u => u.role === 'tenant' && !u.is_admin && !linked.has(u.id));
+  return { users, landlords, unlinked, payments: pays, queue, stats };
+}
+
+/** Hesabı askıya alır (gerekçe zorunlu) ya da kaldırır. */
+export async function setBan(uid, ban, why){
+  const c = await client();
+  must(await c.rpc('admin_set_ban', { uid, ban, why: why || '' }));
+}
+
+/** Mesajlaşması olan mülkler (özet). */
+export async function loadThreads(){
+  const c = await client();
+  return must(await c.rpc('admin_threads'));
+}
+
+/** Bir mülkün yazışması, eskiden yeniye. Her okuma denetim kaydına yazılır. */
+export async function loadMessages(pid){
+  const c = await client();
+  const rows = must(await c.rpc('admin_messages', { pid, lim: 300 }));
+  return rows.slice().sort((a, b) => String(a.at).localeCompare(String(b.at)));
+}
+
+export async function deleteMessage(mid){
+  const c = await client();
+  must(await c.rpc('admin_delete_message', { mid }));
+}
+
+/** Yöneticinin yaptığı işlemlerin değiştirilemez kaydı. */
+export async function loadAudit(){
+  const c = await client();
+  return must(await c.rpc('admin_audit_log', { lim: 300 }));
 }
 
 /** Bir yüklemeye karar verir. Red için gerekçe zorunludur (veritabanı da zorunlu tutar). */

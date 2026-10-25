@@ -189,8 +189,8 @@ Değişkenler boşsa uygulama yerel hesap moduyla açılır (veri yalnızca o ci
 ### Yönetici (denetçi) hesabı
 
 1. `supabase/schema.sql` dosyasını yukarıdaki gibi yeniden çalıştır (tekrar
-   çalıştırılabilir; `admins` ve `reviews` tablolarını, denetim kurallarını ve
-   mevcut yüklemeler için "onaylı" kayıtları ekler).
+   çalıştırılabilir; `admins`, `reviews`, `bans` ve `admin_audit` tablolarını, denetim ve
+   yasaklama kurallarını, mevcut yüklemeler için "onaylı" kayıtları ekler).
 2. Uygulamadan normal bir hesap aç (kiracı olarak kayıt olman yeterli).
 3. **SQL Editor**'de kendi e-postanı yönetici yap:
 
@@ -204,11 +204,39 @@ select id from auth.users where email = 'senin@epostan.com';
 
 ### Yönetici panelinde ne var
 
+Yalnızca `admins` tablosundaki hesap açabilir; başka hesap `/admin` adresinde hiçbir veri görmez
+(sunucu kuralları veri vermez, ekran yalnızca gösterir).
+
 - **Denetim**: kiracı dekontları, her iki tarafın belgeleri ve mülk sahibinin
   faturaları. Önizleme, **Onayla** ya da gerekçeyle **Reddet**.
 - **Ödemeler**: kim kime, hangi mülk ve ay için, ne kadar ödemiş; durum ve denetim durumu.
-- **Mülk sahipleri**: mülk sahibi → mülkler → kiracılar (bekleyen davetler dahil), abonelik durumu.
-- **Kullanıcılar**: tüm hesaplar (e-posta, rol, kayıt tarihi).
+- **Bağlantılar**: mülk sahibi → mülkler → kiracılar (bekleyen davetler dahil), abonelik durumu.
+  Kayıt olup davet kodunu girmemiş ("mülke bağlı olmayan") kiracılar ayrıca listelenir.
+- **Mesajlar**: mesajlaşması olan her mülk; bir yazışmayı aç, mesajları ve fotoğrafları oku,
+  uygunsuz mesajı sil, göndereni oradan yasakla.
+- **Kullanıcılar**: tüm hesaplar; ara, role ya da "askıda" durumuna göre süz, **Yasakla / Yasağı kaldır**.
+- **Kayıt**: yöneticinin yaptığı hassas işlemler (yasaklama, yazışma okuma, mesaj silme, yükleme kararı).
+  Kayıt değiştirilemez ve silinemez; yönetici bile dokunamaz.
+
+#### Yasaklama nasıl çalışır
+
+Gerekçe zorunludur ve kullanıcıya gösterilir. Yasaklanan hesap:
+
+1. Hiçbir tabloyu okuyamaz ya da yazamaz (veritabanı kuralı), dosyalarına erişemez, davete katılamaz.
+2. Supabase Auth'ta girişi kapanır (`banned_until`) ve açık oturumları silinir.
+3. Giriş denerse "Hesabın askıya alındı: <gerekçe>" görür.
+
+Yönetici kendini ya da başka bir yöneticiyi yasaklayamaz. Yasak kaldırılınca her şey geri gelir.
+Yasaklı hesabın eski mesajları ve verisi silinmez; karşı taraf görmeye devam eder.
+
+#### Gizlilik ve KVKK (önemli)
+
+Yöneticinin yazışmaları okuyabilmesi kullanıcıların kişisel verisine erişimdir. Bunun yasal
+dayanağı **Gizlilik ve KVKK Aydınlatma Metni**'nde açıkça yazılı olmalıdır (ör. "hizmet güvenliği,
+kötüye kullanımın önlenmesi ve şikâyet incelemesi için yazışmalar yetkili yönetici tarafından
+incelenebilir; her inceleme kayıt altına alınır"). Sitedeki gizlilik sayfasına bu cümleyi ekleyin;
+gerekirse bir hukukçuya danışın. Panelde her yazışma açılışı Kayıt sekmesine düşer; amaç dışı
+bakmamak ve yalnızca şikâyet/güvenlik gerektiğinde okumak sizin sorumluluğunuzdadır.
 
 ### Yüklemeler onaylanana kadar karşı tarafa görünmez
 
@@ -277,6 +305,10 @@ metnini ve rıza ifadesini bir hukukçuya kontrol ettir.
 **Testler.** `npm install && npx playwright install chromium && npm test`.
 Veritabanı kuralları PGlite (WASM Postgres) ile, istemci akışları sahte bir
 Supabase ile test edilir; gerçek Supabase gerekmez.
+
+## Hostinger'a kurulum
+
+Hostinger paketi, Git ile otomatik dağıtım ve kontrol listesi için `docs/hostinger.md` dosyasına bakın.
 
 ## Güvenlik (WAF ve alan adı koruması)
 

@@ -116,7 +116,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       storage.setItem(SESSION, a.id);
       const u = { id: a.id, email: a.email, name: a.name, role: a.role, createdAt: a.createdAt };
       enter(u); setUser(u); return null;
-    } catch { return t('Bağlantı kurulamadı. Biraz sonra yeniden dene.'); }
+    } catch (e: any) {
+      if (e?.banned !== undefined) return t('Hesabın askıya alındı: {m}', { m: e.banned || t('gerekçe belirtilmedi') }) + ' ' + t('Bilgi için info@kiracim.online adresine yaz.');
+      return t('Bağlantı kurulamadı. Biraz sonra yeniden dene.');
+    }
   }, []);
 
   const signUp = useCallback(async ({ name, email, password, role }: { name: string; email: string; password: string; role: Role }) => {

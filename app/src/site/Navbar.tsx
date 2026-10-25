@@ -1,7 +1,8 @@
 /* Üst alan: ince duyuru şeridi ve açılır menülü yapışkan gezinme (özellikler paneli). */
 import { useEffect, useState } from 'react';
 import { Linking, Pressable, Text as RNText, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeInDown, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Svg, { Defs, Ellipse, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { t } from '../domain/i18n';
 import { CONFIG } from '../domain/config';
 import { Button, Container, PressScale, Text } from '../ui/kit';
@@ -10,23 +11,52 @@ import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { Icon } from '../app-ui/blocks';
 import { menu } from './content';
 
-/** Duyuru şeridi: sol tarafta kampanya, sağda iletişim. Sayfayla birlikte kayar. */
+/** Duyuru şeridi: lacivertten mora geçen gradyan, üzerinde yavaşça gezinen mor bir ışık. Sayfayla birlikte kayar. */
 export function TopBar() {
   const c = useColors();
   const { phone } = useBreakpoint();
+  const reduced = useReducedMotion();
+  const [w, setW] = useState(900);
+  const p = useSharedValue(0);
+  useEffect(() => {
+    if (reduced) return;
+    p.value = withRepeat(withTiming(1, { duration: 9000, easing: Easing.inOut(Easing.sin) }), -1, true);
+  }, [reduced, p]);
+  const glow = useAnimatedStyle(() => ({ transform: [{ translateX: -w * 0.1 + p.value * w * 0.7 }] }));
   const mail = () => Linking.openURL('mailto:' + CONFIG.supportEmail).catch(() => {});
   return (
-    <View style={{ backgroundColor: c.deepA }}>
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ backgroundColor: c.deepA, overflow: 'hidden' }}>
+      <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 10" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+        <Defs>
+          <LinearGradient id="tb" x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor="#141C42" />
+            <Stop offset="0.55" stopColor="#262C70" />
+            <Stop offset="1" stopColor="#1B2350" />
+          </LinearGradient>
+        </Defs>
+        <Rect width="100" height="10" fill="url(#tb)" />
+      </Svg>
+      <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: 0, bottom: -26, width: 320, height: 64 }, glow]}>
+        <Svg width="320" height="64" viewBox="0 0 320 64">
+          <Defs>
+            <RadialGradient id="gl" cx="50%" cy="60%" rx="50%" ry="50%">
+              <Stop offset="0" stopColor="#A99BFF" stopOpacity="0.75" />
+              <Stop offset="1" stopColor="#A99BFF" stopOpacity="0" />
+            </RadialGradient>
+          </Defs>
+          <Ellipse cx="160" cy="38" rx="160" ry="32" fill="url(#gl)" />
+        </Svg>
+      </Animated.View>
       <Container>
-        <View style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: phone ? 'center' : 'space-between', gap: 12 }}>
+        <View style={{ minHeight: 46, flexDirection: 'row', alignItems: 'center', justifyContent: phone ? 'center' : 'space-between', gap: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Icon name="key" size={16} color={c.butter} />
             <RNText style={{ fontFamily: fonts.bodyBold, fontSize: phone ? 13 : 14, color: c.heroInk }}>{t('Kiracılar ücretsiz · Mülk sahipleri 14 gün kartsız dener')}</RNText>
           </View>
           {!phone && (
             <PressScale onPress={mail} accessibilityRole="link" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10 }}>
-              <Icon name="chat" size={16} color={c.heroMuted} />
-              <RNText style={{ fontFamily: fonts.bodyBold, fontSize: 14, color: c.heroMuted }}>{CONFIG.supportEmail}</RNText>
+              <Icon name="chat" size={16} color={c.heroInk} />
+              <RNText style={{ fontFamily: fonts.bodyBold, fontSize: 14, color: c.heroInk }}>{CONFIG.supportEmail}</RNText>
             </PressScale>
           )}
         </View>

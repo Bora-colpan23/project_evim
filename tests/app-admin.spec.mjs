@@ -248,6 +248,8 @@ test('ana sayfa üst menüsü oturum açıkken de "Giriş yap" ve "Kayıt ol" g�
 test('ana sayfa: duyuru şeridi, açılır özellik menüsü ve kayan özellik kartları', async ({ page }) => {
   await page.goto(url('/'));
   await expect(page.getByText('Kiracılar ücretsiz · Mülk sahipleri 14 gün kartsız dener')).toBeVisible();
+  // Başlığın yanındaki yüzen kartlar (ödeme, yazışma, talep, depozito).
+  for (const tag of ['Ödemeler', 'Yazışma', 'Talepler', 'Depozito']) await expect(page.getByText(tag, { exact: true }).first()).toBeVisible();
   // Üzerine gelmek açmaz; basınca açılır ve fare çekilse de açık kalır.
   await page.getByRole('button', { name: 'Özellikler' }).hover();
   await expect(page.getByText('Dekont yükleme')).toHaveCount(0);

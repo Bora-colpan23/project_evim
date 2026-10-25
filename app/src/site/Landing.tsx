@@ -9,11 +9,11 @@ import { t, getLang, setLang } from '../domain/i18n';
 import { CONFIG } from '../domain/config';
 import { Button, Chip, Container, PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
-import { MonthStrip } from '../ui/Facade';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 import { Slam } from '../ui/motion';
+import { useHeroCards } from './HeroCards';
 import { useLangTick } from '../app-ui/hooks';
-import { Steps } from '../app-ui/blocks';
+import { Icon, Steps } from '../app-ui/blocks';
 import { features, planPoints, plans } from './content';
 import { Nav, TopBar } from './Navbar';
 import { FeatureCarousel } from './Carousel';
@@ -67,67 +67,64 @@ function Daylight() {
   );
 }
 
-function RentCard() {
-  const c = useColors();
-  return (
-    <View style={{ backgroundColor: c.hero, borderRadius: 24, padding: 22, gap: 10, flex: 1, minWidth: 240 }}>
-      <Text v="label" color={c.heroMuted}>{t('Kasım kirası')}</Text>
-      <Text v="num" color={c.heroInk}>₺32.500</Text>
-      <MonthStrip onDark kinds={['lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'lit', 'mint', 'off']} />
-      <Text v="small" color={c.heroMuted}>{t('5 Kasım · 12 gün kaldı')}</Text>
-      <View style={{ marginTop: 6 }}><Button title={t('Dekont yükle')} onPress={() => {}} /></View>
-    </View>
-  );
-}
-
 function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string) => void }) {
   const c = useColors();
-  const { desktop, phone } = useBreakpoint();
-  const size = phone ? 46 : desktop ? 104 : 76;
+  const { phone, width } = useBreakpoint();
+  const wide = width >= 1100;
+  const size = phone ? 44 : wide ? 76 : 72;
   const pill = Math.round(size * 0.7);
+  const mk = useHeroCards(wide ? 248 : 232);
+  const text = (
+    <View style={{ flex: wide ? 1 : undefined, alignItems: 'center', gap: 22, paddingVertical: wide ? 28 : 0 }}>
+      <Animated.View entering={enter(0)}><Chip tone="neutral" label={t('Kiracılar için ücretsiz')} /></Animated.View>
+      <View style={{ alignItems: 'center', gap: 2 }}>
+        <Animated.View entering={enter(1)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: size * 0.12 }}>
+          <Slam delay={150} height={Math.round(size * 1.12)}><D size={size}>{t('Kira işi,')}</D></Slam>
+          <Pill bg={c.surface} fg={c.ink} size={pill}>
+            <View style={{ width: pill * 0.4, height: pill * 0.4, borderRadius: pill * 0.1, backgroundColor: c.lemon }} />
+            <RNText style={{ fontFamily: fonts.bodyBold, fontSize: pill * 0.4, color: c.ink }}>{t('Ödendi')}</RNText>
+          </Pill>
+        </Animated.View>
+        <Slam delay={320} height={Math.round(size * 1.12)}><D size={size}>{t('ev kadar')}</D></Slam>
+        <Slam delay={490} height={Math.round(size * 1.12)}><D size={size} color={c.accentText}>{t('rahat.')}</D></Slam>
+      </View>
+      <Animated.View entering={enter(4)} style={{ alignItems: 'center', gap: 18, maxWidth: 520 }}>
+        <Text v="body" style={{ fontSize: phone ? 16 : 18, lineHeight: phone ? 24 : 27, textAlign: 'center' }}>
+          {t('Sözleşme, ödeme, depozito ve arıza yazışması tek uygulamada. Kiracı ve mülk sahibi aynı kayda iki taraftan bakar.')}
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+          {[['check', t('Kiracılar ücretsiz')], ['card', t('Kartsız 14 gün deneme')], ['home', t('Konut, ofis, mağaza, depo')]].map(([ic, l]) => (
+            <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: c.surface, borderRadius: radius.pill, borderWidth: 1, borderColor: c.line, paddingHorizontal: 12, paddingVertical: 7 }}>
+              <Icon name={ic} size={15} />
+              <RNText style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: c.ink }}>{l}</RNText>
+            </View>
+          ))}
+        </View>
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <Button title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
+          <Button kind="ghost" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
+        </View>
+      </Animated.View>
+    </View>
+  );
   return (
     <Container style={{ paddingTop: phone ? 10 : 18 }}>
-      <View style={{ borderRadius: phone ? 32 : 40, padding: phone ? 22 : 56, gap: phone ? 28 : 44, overflow: 'hidden', backgroundColor: c.cream }}>
+      <View style={{ borderRadius: phone ? 32 : 40, padding: phone ? 22 : 48, overflow: 'hidden', backgroundColor: c.cream }}>
         <Daylight />
-        <View style={{ gap: 6 }}>
-          <Animated.View entering={enter(0)} style={{ marginBottom: 14 }}><Chip tone="neutral" label={t('Kiracılar için ücretsiz')} /></Animated.View>
-          <Animated.View entering={enter(1)} style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: size * 0.12 }}>
-            <Slam delay={150} height={Math.round(size * 1.12)}><D size={size}>{t('Kira işi,')}</D></Slam>
-            <Pill bg={c.surface} fg={c.ink} size={pill}>
-              <View style={{ width: pill * 0.4, height: pill * 0.4, borderRadius: pill * 0.1, backgroundColor: c.lemon }} />
-              <RNText style={{ fontFamily: fonts.bodyBold, fontSize: pill * 0.4, color: c.ink }}>{t('Ödendi')}</RNText>
-            </Pill>
-          </Animated.View>
-          <Slam delay={320} height={Math.round(size * 1.12)}><D size={size}>{t('ev kadar')}</D></Slam>
-          <Slam delay={490} height={Math.round(size * 1.12)}><D size={size} color={c.accentText}>{t('rahat.')}</D></Slam>
-        </View>
-
-        <View style={{ flexDirection: desktop ? 'row' : 'column', gap: desktop ? 56 : 28, alignItems: desktop ? 'flex-end' : 'stretch', justifyContent: 'space-between' }}>
-          <Animated.View entering={enter(4)} style={{ maxWidth: 520, gap: 22 }}>
-            <Text v="body" style={{ fontSize: phone ? 17 : 20, lineHeight: phone ? 26 : 30 }}>
-              {t('Sözleşme, ödeme, depozito ve arıza yazışması tek uygulamada. Kiracı ve mülk sahibi aynı kayda iki taraftan bakar.')}
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
-              <Button title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
-              <Button kind="ghost" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
-            </View>
-            <Text v="small" muted>{t('Mülk sahipleri 14 gün kartsız dener. Konut, ofis, mağaza ve depo.')}</Text>
-          </Animated.View>
-
-          <Animated.View entering={FadeInUp.delay(380).springify().damping(20)} style={{ flexDirection: 'row', gap: 14, flexWrap: 'wrap', flex: desktop ? 1 : undefined, maxWidth: desktop ? 640 : undefined, justifyContent: desktop ? 'flex-end' : 'flex-start' }}>
-            <RentCard />
-            <View style={{ flex: 1, minWidth: 220, gap: 14 }}>
-              <View style={{ backgroundColor: c.surface, borderRadius: 24, padding: 18, gap: 10, borderWidth: 1, borderColor: c.line }}>
-                <Text v="small" style={{ fontFamily: fonts.bodyBold }}>{t('Kombi basıncı düşüyor')}</Text>
-                <Steps status={2} labels={[t('Açıldı'), t('Görüldü'), t('İşlemde'), t('Çözüldü')]} />
-              </View>
-              <View style={{ backgroundColor: c.lemon, borderRadius: 24, padding: 18, gap: 4 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><Text v="small" color="#121A3B" style={{ fontFamily: fonts.bodyBold }}>{t('Sözleşme yenileme')}</Text><Chip label={t('52 gün')} tone="neutral" /></View>
-                <Text v="small" color="#121A3B">{t('Artış, 12 aylık TÜFE ortalamasıyla sınırlı. İki taraf aynı hesabı görür.')}</Text>
-              </View>
-            </View>
-          </Animated.View>
-        </View>
+        {wide ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 36 }}>
+            <View style={{ gap: 22, marginTop: -30 }}>{mk('l1').odeme}{mk('l2').yazisma}</View>
+            {text}
+            <View style={{ gap: 22, marginTop: 30 }}>{mk('r1').talep}{mk('r2').depozito}</View>
+          </View>
+        ) : (
+          <View style={{ gap: 32 }}>
+            {text}
+            <Animated.View entering={FadeInUp.delay(380).springify().damping(20)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
+              {[mk('a').odeme, mk('b').talep, mk('c').yazisma, mk('d').depozito]}
+            </Animated.View>
+          </View>
+        )}
       </View>
     </Container>
   );

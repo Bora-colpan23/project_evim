@@ -596,7 +596,7 @@ function SubscriptionSheet() {
           <Row>{planList().map((pl: any) => {
             const on = plan === pl.id;
             return (
-              <PressScale key={pl.id} onPress={() => setPlan(pl.id)} accessibilityRole="radio" accessibilityState={{ selected: on }} style={{ flex: 1, padding: 16, borderRadius: radius.lg, borderWidth: 1.5, borderColor: on ? c.accent : c.line, backgroundColor: on ? c.accentSoft : c.surface, gap: 2 }}>
+              <PressScale key={pl.id} onPress={() => setPlan(pl.id)} accessibilityRole="radio" aria-checked={on} accessibilityState={{ selected: on }} style={{ flex: 1, padding: 16, borderRadius: radius.lg, borderWidth: 1.5, borderColor: on ? c.accent : c.line, backgroundColor: on ? c.accentSoft : c.surface, gap: 2 }}>
                 <Text v="small" style={{ fontFamily: fonts.bodyXBold }}>{(PLAN_LABEL as any)[pl.id]()}</Text>
                 <Text v="h2">{pl.label}</Text>
                 <Muted>{pl.id === 'annual' ? t('yıllık ödenir') : t('aylık ödenir')}</Muted>

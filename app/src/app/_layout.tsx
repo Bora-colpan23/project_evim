@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
-import { Slot } from 'expo-router';
+import { Slot, usePathname } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { InterTight_700Bold, InterTight_800ExtraBold } from '@expo-google-fonts/inter-tight';
@@ -9,6 +9,7 @@ import { initLang } from '../domain/i18n';
 import { boot } from '../domain/state';
 import { AuthProvider } from '../auth/auth';
 import { useColors } from '../ui/theme';
+import titles from '../site/titles.json';
 
 export default function Root() {
   const [fontsOk] = useFonts({
@@ -24,6 +25,14 @@ export default function Root() {
     });
   }, []);
   const c = useColors();
+  // Sayfa geçişlerinde sekme başlığı da değişsin (ekran okuyucu ve geçmiş için).
+  const path = usePathname();
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const key = path.replace(/^\/|\/$/g, '');
+    const T = titles as Record<string, string>;
+    document.title = T[key] || T[key.split('/').slice(0, 2).join('/')] || T[key.split('/')[0]] || T._default;
+  }, [path]);
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       document.documentElement.style.backgroundColor = c.bg;

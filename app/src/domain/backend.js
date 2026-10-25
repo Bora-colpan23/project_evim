@@ -39,6 +39,23 @@ const refreshQueue = new Set();
 let refreshTimer = null;
 
 export const sb = () => live.client;
+
+/* Çevrimdışı dayanıklılık: sunucuda bilinen son hal (baseline) cihazda da saklanır. Uygulama yeniden açıldığında
+   yerel kayıt ile baseline'ın farkı, sunucuya gitmemiş değişikliklerdir; yüklemeden önce gönderilir, gönderilemezse
+   yerel veri sunucu verisiyle ezilmez. */
+const BASE = uid => 'kiracim-live-base:' + uid;
+function persistBase(){
+  if (!me()) return;
+  try { storage.setItem(BASE(me()), JSON.stringify({ synced, settings: syncedSettings, profile: live.profile })); } catch(e){}
+}
+function hasUnsynced(){
+  const ids = new Set([...Object.keys(synced), ...S.order]);
+  for (const pid of ids){
+    const now = S.props[pid] ? JSON.stringify(S.props[pid]) : null;
+    if (now !== (synced[pid] || null)) return true;
+  }
+  return !!syncedSettings && JSON.stringify(S.settings) !== syncedSettings;
+}
 const me = () => live.user?.id;
 
 function must(res){
@@ -66,6 +83,8 @@ export async function client(){
   if (typeof window !== 'undefined' && window.addEventListener){
     window.addEventListener('online', () => { if (live.user) { setStatus('syncing'); scheduleSync(0); } });
     window.addEventListener('offline', () => setStatus('offline'));
+    // Çevrimdışı/hatalı kalan eşitleme 30 saniyede bir yeniden denenir (tarayıcı "online" olayı göndermese de).
+    setInterval(() => { if (live.user && live.loaded && (live.status === 'offline' || live.status === 'error')) scheduleSync(0); }, 30000);
   }
   return live.client;
 }
@@ -80,7 +99,14 @@ function setStatus(s){
 export async function openSession(user){
   live.user = user;
   const c = await client();
-  live.profile = must(await c.from('profiles').select('*').eq('id', user.id).single());
+  let base = null;
+  try { base = JSON.parse(storage.getItem(BASE(user.id))); } catch(e){}
+  try {
+    live.profile = must(await c.from('profiles').select('*').eq('id', user.id).single());
+  } catch(e){
+    if (base && base.profile) live.profile = base.profile;          // çevrimdışı açılış: son bilinen profil
+    else throw e;
+  }
   live.isAdmin = !!(await c.rpc('is_admin')).data;
   if (live.isAdmin) return { admin: true, profile: live.profile };
   // Askıya alınmış hesap: Auth girişi zaten kapalıdır; bu, açık kalmış oturumu da kapatır.
@@ -91,9 +117,15 @@ export async function openSession(user){
   try { cached = JSON.parse(storage.getItem('kiracim-live:' + user.id)); } catch(e){}
   if (cached && cached.v === VERSION && cached.props){
     replaceState(cached, { silent:true });
+    if (base && base.synced){
+      // Önbellekten açılış: eşitleme çalışabilir; sunucuya ulaşılamasa da ekran kayıtlı veriyle açılır.
+      synced = base.synced; syncedSettings = base.settings || '';
+      live.loaded = true;
+    }
     emit();
   }
   hooks.afterSave = scheduleSync;
+  if (live.loaded && hasUnsynced()) await flush();          // kuyrukta bekleyen yerel değişiklikleri önce gönder
   await loadAll();
   subscribe();
   return { admin: false, profile: live.profile };
@@ -103,7 +135,7 @@ export async function closeSession(){
   if (channel && live.client){ live.client.removeChannel(channel); channel = null; }
   const uidWas = me();
   try { await live.client?.auth.signOut(); } catch(e){}
-  if (uidWas) storage.removeItem('kiracim-live:' + uidWas);
+  if (uidWas){ storage.removeItem('kiracim-live:' + uidWas); storage.removeItem(BASE(uidWas)); }
   synced = {};
   live.user = null; live.profile = null; live.access = null; live.loaded = false; live.isAdmin = false;
   hooks.afterSave = null;
@@ -206,8 +238,12 @@ export function reviewOf(kind, pid, ref){
   return (ui.reviews || {})[kind + ':' + pid + ':' + ref];
 }
 
-export async function loadAll(){
+export async function loadAll(opts = {}){
   if (!me()) return;
+  if (!opts.force && live.loaded && hasUnsynced()){
+    await flush();                                        // önce bekleyen yerel değişiklikleri gönder
+    if (hasUnsynced()){ if (live.status === 'syncing') setStatus('offline'); return; }   // gönderilemedi: yerel veri korunur
+  }
   setStatus('syncing');
   try {
     live.profile = must(await sb().from('profiles').select('*').eq('id', me()).single());
@@ -237,6 +273,7 @@ export async function loadAll(){
 
     replaceState(next);
     live.loaded = true;
+    persistBase();
     setStatus('synced');
     resolveMedia(Object.values(next.props).flatMap(storedPaths));
     emit();
@@ -265,6 +302,7 @@ async function refreshProperty(pid){
   const { p } = built[0];
   const json = JSON.stringify(p);
   synced[pid] = json;
+  persistBase();
   if (JSON.stringify(S.props[pid]) === json){ emit(); return; }
   S.props[pid] = p;
   if (!S.order.includes(pid)) S.order.push(pid);
@@ -312,12 +350,14 @@ async function flush(){
       const ops = diffProperty(before, after, { role: roleIn(after || before), meId: me() });
       for (const op of ops) await apply(op);
       if (afterJson) synced[pid] = afterJson; else delete synced[pid];
+      persistBase();
     }
 
     const settingsJson = JSON.stringify(S.settings);
     if (settingsJson !== syncedSettings){
       must(await sb().from('profiles').update({ settings: S.settings }).eq('id', me()));
       syncedSettings = settingsJson;
+      persistBase();
     }
     await loadReviews();
     setStatus('synced');
@@ -330,7 +370,7 @@ async function flush(){
       setStatus('error');
       host.notify({ title:t('Kaydedilemedi'), body: humanError(e), icon:'bell' });
       // Sunucunun reddettiği değişikliği geri al: güncel hali yeniden yükle.
-      await loadAll().catch(() => {});
+      await loadAll({ force:true }).catch(() => {});
     }
   } finally {
     flushing = false;

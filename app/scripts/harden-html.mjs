@@ -8,8 +8,8 @@
 // Ortam: EXPO_PUBLIC_SUPABASE_URL (API ve gerçek zamanlı bağlantı kaynağı), EXPO_PUBLIC_TURNSTILE_SITE_KEY
 // (varsa Cloudflare Turnstile için gerekli kaynaklar), EXPO_BASE_URL (GitHub Pages proje yolu).
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
 const out = process.argv[2];
 if (!out) { console.error('Kullanım: node scripts/harden-html.mjs <klasör>'); process.exit(1); }
@@ -54,6 +54,13 @@ function walk(dir) {
   });
 }
 
+const TITLES = JSON.parse(readFileSync(new URL('../src/site/titles.json', import.meta.url), 'utf8'));
+const DESC = 'Kiracım: kiracı ile mülk sahibi için kira, ödeme, depozito, arıza ve belge takibi tek yerde.';
+const titleFor = (file) => {
+  const key = relative(out, file).replace(/\.html$/, '').replace(/(^|\/)index$/, '');
+  return TITLES[key] || TITLES[key.split('/')[0]] || TITLES._default;
+};
+
 let count = 0;
 for (const file of walk(out)) {
   let html = readFileSync(file, 'utf8');
@@ -61,8 +68,14 @@ for (const file of walk(out)) {
   html = html.replace('<html lang="en">', '<html lang="tr">');
   const guard = `<script>${FRAME_GUARD}</script>`;
   const hashes = [...new Set([...inline(html), FRAME_GUARD].map(sha))];
+  const title = titleFor(file);
   const head = [
     `<meta http-equiv="Content-Security-Policy" content="${esc(csp(hashes))}"/>`,
+    `<title>${title}</title>`,
+    `<meta name="description" content="${DESC}"/>`,
+    `<meta property="og:title" content="${title}"/>`,
+    `<meta property="og:description" content="${DESC}"/>`,
+    '<meta property="og:locale" content="tr_TR"/>',
     '<meta name="referrer" content="strict-origin-when-cross-origin"/>',
     '<meta name="theme-color" content="#FBF4EA"/>',
     '<meta name="apple-mobile-web-app-capable" content="yes"/>',
@@ -77,3 +90,19 @@ for (const file of walk(out)) {
   count++;
 }
 console.log(`harden-html: ${count} sayfa sertleştirildi`);
+
+// Kullanılmayan yazı tipi dosyalarını sil: expo paketteki her ağırlığı kopyalar (≈14 MB); sayfalar yalnızca @font-face'te geçenleri ister.
+const used = new Set();
+for (const file of walk(out)) for (const m of readFileSync(file, 'utf8').matchAll(/url\(&quot;([^&]+\.ttf)&quot;\)|url\("([^"]+\.ttf)"\)/g)) used.add(decodeURI(m[1] || m[2]));
+let pruned = 0;
+const fontRoot = join(out, 'assets/node_modules/@expo-google-fonts');
+const prune = (dir) => {
+  for (const n of readdirSync(dir)) {
+    const p = join(dir, n);
+    if (statSync(p).isDirectory()) { prune(p); continue; }
+    const web = '/' + relative(out, p).split('\\').join('/');
+    if (n.endsWith('.ttf') && ![...used].some((u) => u === web || u.endsWith(web))) { rmSync(p); pruned++; }
+  }
+};
+try { prune(fontRoot); } catch { /* yazı tipi klasörü yoksa geç */ }
+console.log(`harden-html: ${pruned} kullanılmayan yazı tipi dosyası silindi`);

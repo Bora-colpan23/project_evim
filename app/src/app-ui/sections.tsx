@@ -475,7 +475,7 @@ export function SecMoveOut({ p }: { p: any }) {
                 <Row wrap gap={6}>{['', ...CONDITIONS].map((cd: string) => {
                   const on = (r.condition || '') === cd;
                   if (!cd) return null;
-                  return <PressScale key={cd} onPress={() => act('setExitCond', { pid: p.id, i, v: cd })} accessibilityRole="radio" accessibilityState={{ selected: on }} scaleTo={0.96}
+                  return <PressScale key={cd} onPress={() => act('setExitCond', { pid: p.id, i, v: cd })} accessibilityRole="radio" aria-checked={on} accessibilityState={{ selected: on }} scaleTo={0.96}
                     style={{ paddingHorizontal: 14, minHeight: 38, borderRadius: radius.pill, justifyContent: 'center', backgroundColor: on ? c.ink : c.surface, borderWidth: 1, borderColor: on ? c.ink : c.line }}>
                     <Text v="small" color={on ? c.bg : c.ink} style={{ fontFamily: fonts.bodyXBold }}>{t(cd)}</Text></PressScale>;
                 })}</Row>

@@ -39,7 +39,7 @@ export function MonthWindows({ p, onDark }: { p: any; onDark?: boolean }) {
   });
   const lit = kinds.filter((k) => k === 'lit').length;
   return (
-    <View accessibilityLabel={`${lit}/12`} style={{ flexDirection: 'row', gap: 5 }}>
+    <View accessibilityRole="image" accessibilityLabel={`${lit}/12`} style={{ flexDirection: 'row', gap: 5 }}>
       {kinds.map((k, i) => <Win key={i + k} kind={k} i={i} onDark={onDark} />)}
     </View>
   );

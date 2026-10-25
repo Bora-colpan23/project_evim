@@ -32,7 +32,7 @@ function FloatCard({ tag, tone, scenes, delay = 0, w = CARD_W }: { tag: string; 
         {scenes[i]}
       </Animated.View>
       <View style={{ position: 'absolute', top: 12, left: 12, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 5 }}>
-        <RNText style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: c.ink }}>{tag}</RNText>
+        <RNText style={{ fontFamily: fonts.bodyBold, fontSize: 12, color: '#121A3B' }}>{tag}</RNText>
       </View>
     </Animated.View>
   );

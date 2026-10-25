@@ -834,7 +834,10 @@ begin
   select count(*) into before from public.notifications;
 
   for p in select * from public.properties loop
+    continue when p.start_date > today;                      -- sözleşme henüz başlamadı
     due := make_date(extract(year from today)::int, extract(month from today)::int, p.due_day);
+    -- İlk ayda vade, sözleşme başlangıcından önceye düşmez (yeni eklenen mülk için "kira gecikti" gitmez).
+    if to_char(p.start_date, 'YYYY-MM') = mkey and p.start_date > due then due := p.start_date; end if;
     select status into paid from public.payments where property_id = p.id and month = mkey;
 
     for mb in select * from public.memberships where property_id = p.id loop
@@ -1367,3 +1370,13 @@ drop policy if exists device_own on public.device_tokens;
 create policy device_own on public.device_tokens for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 grant select, insert, update, delete on public.device_tokens to authenticated;
+
+-- ---------------------------------------------------------------------
+-- İç işlevlerin dışarıdan çağrılmasını kapat.
+-- Supabase, public şemasındaki işlevleri RPC olarak herkese (anon, authenticated) açar; security definer
+-- olan bu üçü RLS'yi aşar. Yabancı biri bildirim gönderebilir, bir yüklemenin denetim durumunu sıfırlayabilirdi.
+-- Tetikleyiciler (security definer) sahibin yetkisiyle çalışır; bu kapanıştan etkilenmez.
+-- ---------------------------------------------------------------------
+revoke execute on function public.notify_members(text, text, text, text, text, text, uuid, text) from public, anon, authenticated;
+revoke execute on function public.upsert_review(text, text, text, uuid, text, text, numeric) from public, anon, authenticated;
+revoke execute on function public.prop_name(text) from public, anon, authenticated;

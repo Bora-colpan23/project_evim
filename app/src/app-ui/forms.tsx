@@ -63,7 +63,7 @@ export function Choice({ label, options, v, set, k, render }: { label: string; o
         {options.map((o) => {
           const on = v[k] === o;
           return (
-            <PressScale key={o} onPress={() => set(k, o)} accessibilityRole="radio" accessibilityState={{ selected: on }} scaleTo={0.96}
+            <PressScale key={o} onPress={() => set(k, o)} accessibilityRole="radio" aria-checked={on} accessibilityState={{ selected: on }} scaleTo={0.96}
               style={{ paddingHorizontal: 14, minHeight: 40, borderRadius: radius.pill, justifyContent: 'center', backgroundColor: on ? c.accent : c.surface, borderWidth: 1, borderColor: on ? c.accent : c.line }}>
               <Text v="small" color={on ? c.accentInk : c.ink} style={{ fontFamily: fonts.bodyXBold }}>{render ? render(o) : o}</Text>
             </PressScale>
@@ -77,7 +77,7 @@ export function Choice({ label, options, v, set, k, render }: { label: string; o
 export function Toggle({ label, on, onChange }: { label: ReactNode; on: boolean; onChange: (b: boolean) => void }) {
   const c = useColors();
   return (
-    <PressScale onPress={() => onChange(!on)} accessibilityRole="switch" accessibilityState={{ checked: on }} scaleTo={0.99}
+    <PressScale onPress={() => onChange(!on)} accessibilityRole="switch" aria-checked={on} accessibilityState={{ checked: on }} scaleTo={0.99}
       style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 6 }}>
       <Text v="small" style={{ flex: 1, fontFamily: fonts.bodyBold }}>{label}</Text>
       <View style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: on ? c.accent : c.line, padding: 3, alignItems: on ? 'flex-end' : 'flex-start' }}>

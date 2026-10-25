@@ -8,7 +8,14 @@ export function t0(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
 export function iso(d){ d = new Date(d); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 export function parse(s){ const p = String(s).split('-').map(Number); return new Date(p[0], p[1]-1, p[2]||1); }
 export function add(d,n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
-export function addM(d,n){ const x = new Date(d); x.setMonth(x.getMonth()+n); return x; }
+/** Ay ekler; hedef ayda o gün yoksa ayın son gününe yaslar (31 Ocak + 1 ay = 28/29 Şubat, 3 Mart değil). */
+export function addM(d,n){
+  const x = new Date(d), day = x.getDate();
+  x.setDate(1);
+  x.setMonth(x.getMonth()+n);
+  x.setDate(Math.min(day, new Date(x.getFullYear(), x.getMonth()+1, 0).getDate()));
+  return x;
+}
 export function mkey(d){ d = new Date(d); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 export function between(a,b){ return Math.round((b-a)/DAY); }
 export function daysTo(s){ return between(t0(), parse(s)); }

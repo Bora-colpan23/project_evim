@@ -7,6 +7,29 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
   '.png': 'image/png', '.ico': 'image/x-icon', '.ttf': 'font/ttf', '.svg': 'image/svg+xml', '.map': 'application/json' };
 
 /** dist klasörünü sunar; /admin → admin/index.html ya da admin.html. */
+import { execSync } from 'node:child_process';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
+
+/** Sahte sunucuyla derlenmiş çıktıyı (app/dist-fake) hazırlar. Birden çok test dosyası aynı anda isterse yalnızca biri derler. */
+export async function ensureDist(dist) {
+  const lock = dist + '.lock';
+  const ready = () => existsSync(dist + '/index.html') && !existsSync(lock);
+  if (ready()) return;
+  let mine = false;
+  try { mkdirSync(lock); mine = true; } catch { /* başkası derliyor */ }
+  if (mine) {
+    try {
+      execSync('npx expo export -p web --output-dir dist-fake && node scripts/harden-html.mjs dist-fake', {
+        cwd: new URL('../app', import.meta.url).pathname, stdio: 'inherit',
+        env: { ...process.env, EXPO_PUBLIC_SUPABASE_URL: 'fake:', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'fake' }
+      });
+    } finally { rmSync(lock, { recursive: true, force: true }); }
+    return;
+  }
+  for (let i = 0; i < 600 && !ready(); i++) await new Promise((r) => setTimeout(r, 1000));
+  if (!ready()) throw new Error('dist-fake hazırlanamadı');
+}
+
 export function serveDist(root, port) {
   const server = createServer(async (req, res) => {
     const path = decodeURIComponent(new URL(req.url, 'http://x').pathname);

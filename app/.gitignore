@@ -4,3 +4,4 @@ dist/
 *.tsbuildinfo
 .claude/
 dist-fake/
+dist-fake.lock/

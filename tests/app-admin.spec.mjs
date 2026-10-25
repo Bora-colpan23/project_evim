@@ -3,10 +3,9 @@
 // Sunucu tarafı kuralları gerçek Postgres'te ayrıca sınanır (admin.sql.spec.mjs); burada
 // istemci akışı sahte Supabase (app/src/testing/fake-supabase.js) ile doğrulanır.
 import { test, expect } from '@playwright/test';
-import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { serveDist, seed, PW } from './app-helpers.mjs';
+import { serveDist, seed, PW, ensureDist } from './app-helpers.mjs';
 import { watchErrors, PNG } from './helpers.mjs';
 
 // Sahte sunucuyla derlenmiş çıktı; uygulama kodu değişince `rm -rf app/dist-fake` ile yeniden üretilir.
@@ -19,12 +18,7 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
   test.setTimeout(300_000);                       // ilk çalıştırmada uygulama derlenir
-  if (!existsSync(DIST + '/index.html')) {
-    execSync('npx expo export -p web --output-dir dist-fake && node scripts/harden-html.mjs dist-fake', {
-      cwd: new URL('../app', import.meta.url).pathname, stdio: 'inherit',
-      env: { ...process.env, EXPO_PUBLIC_SUPABASE_URL: 'fake:', EXPO_PUBLIC_SUPABASE_ANON_KEY: 'fake' }
-    });
-  }
+  await ensureDist(DIST);
   server = await serveDist(DIST, PORT);
 });
 test.afterAll(() => server && server.close());

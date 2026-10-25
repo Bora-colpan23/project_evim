@@ -126,6 +126,9 @@ class Query {
   run(){
     const db = load();
     this.c._calls.push({ table:this.t, op:this.op });
+    // Kesinti benzetimi (testler): __fakefail=1 yazmalar, =2 her şey "Failed to fetch" verir.
+    const ff = localStorage.getItem('__fakefail');
+    if (ff === '2' || (ff === '1' && this.op !== 'select')) return { data:null, error:{ message:'Failed to fetch' } };
     if (this.c._fail && this.c._fail(this.t, this.op)) return { data:null, error:{ message:'Sahte sunucu hatası', code:'XX000' } };
     const actor = db.session?.user.id;
     if (actor && GATED.includes(this.t) && ['insert','upsert','update'].includes(this.op)){
@@ -238,6 +241,7 @@ export function createClient(url, key, opts){
     },
     from(t){ return new Query(client, t); },
     async rpc(name, args){
+      if (localStorage.getItem('__fakefail') === '2') return { data:null, error:{ message:'Failed to fetch' } };
       const db = load();
       const me = db.session?.user.id;
       if (name === 'accept_invite'){
@@ -337,6 +341,7 @@ export function createClient(url, key, opts){
         const GIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
         return {
           async upload(path, blob, o){
+            if (localStorage.getItem('__fakefail')) return { data:null, error:{ message:'Failed to fetch' } };
             const db = load();
             db.storage[path] = { size: blob.size || blob.byteLength || 0, type: (o && o.contentType) || blob.type || '' };
             persist(db);

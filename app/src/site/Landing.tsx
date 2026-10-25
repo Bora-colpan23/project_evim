@@ -406,12 +406,12 @@ function Footer() {
         <Logo onDark />
         <View style={{ flexDirection: 'row', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
           {[['tr', 'Türkçe'], ['en', 'English']].map(([code, name]) => (
-            <PressScale key={code} accessibilityRole="button" accessibilityState={{ selected: lang === code }} onPress={() => { setLang(code); if (typeof location !== 'undefined') location.reload(); }} style={{ paddingVertical: 8 }}>
+            <PressScale key={code} accessibilityRole="button" accessibilityState={{ selected: lang === code }} onPress={() => { setLang(code); if (typeof location !== 'undefined') location.reload(); }} style={{ minHeight: 44, minWidth: 48, justifyContent: 'center' }}>
               <Text v="small" color={lang === code ? c.heroInk : c.heroMuted} style={{ fontFamily: lang === code ? fonts.bodyXBold : fonts.body }}>{name}</Text>
             </PressScale>
           ))}
           {items.map(([l, u]) => (
-            <PressScale key={u} accessibilityRole="link" onPress={() => Linking.openURL(u)} style={{ paddingVertical: 8 }}>
+            <PressScale key={u} accessibilityRole="link" onPress={() => Linking.openURL(u)} style={{ minHeight: 44, justifyContent: 'center' }}>
               <Text v="small" color={c.heroMuted}>{l}</Text>
             </PressScale>
           ))}

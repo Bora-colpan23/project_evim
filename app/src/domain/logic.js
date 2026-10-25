@@ -26,14 +26,19 @@ export function chip(st){
 export function statusOf(p, key){
   const rec = p.pay[key];
   if (rec) return rec.status;
-  const d = parse(key+'-01');
-  const due = new Date(d.getFullYear(), d.getMonth(), p.dueDay);
-  return t0() > due ? 'late' : 'pending';
+  return t0() > dueDate(p, key) ? 'late' : 'pending';
 }
 
+/** Vade günü. Sözleşmenin ilk ayında vade, sözleşme başlangıcından önceye düşmez
+    (ayın 25'inde başlayan sözleşme için 5'i vadeli ilk kira, başlangıçta gecikmiş görünmez). */
 export function dueDate(p, key){
   const d = parse(key+'-01');
-  return new Date(d.getFullYear(), d.getMonth(), p.dueDay);
+  let due = new Date(d.getFullYear(), d.getMonth(), p.dueDay);
+  if (p.startDate){
+    const s = parse(p.startDate);
+    if (mkey(s) === key && s > due) due = s;
+  }
+  return due;
 }
 
 /**

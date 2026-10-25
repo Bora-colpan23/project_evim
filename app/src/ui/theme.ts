@@ -7,11 +7,11 @@ export const light = {
   bg: '#FBF4EA', surface: '#FFFCF7', surface2: '#E6DFD3', line: '#E6DFD3',
   ink: '#121A3B', muted: '#4A4F63', accent: '#FF5A2E', accentInk: '#121A3B', accentSoft: '#FFDED5',
   /** Küçük metinde Kiremit (3:1'in altında) yerine okunur koyu ton. */
-  accentText: '#C2360F',
+  accentText: '#A82B08',
   /** Pasif düğme/öğe: Taş Gri Açık zemin, Taş Gri Orta metin. */
   offBg: '#E6DFD3', offInk: '#9A9BA8',
   hero: '#121A3B', heroInk: '#FBF4EA', heroMuted: '#B8BCD6',
-  okBg: '#BFE8D2', okInk: '#1F7A55', badBg: '#FBD9D5', badInk: '#D92D20', warnBg: '#FFD84A', warnInk: '#121A3B',
+  okBg: '#BFE8D2', okInk: '#17653F', badBg: '#FBD9D5', badInk: '#B42318', warnBg: '#FFD84A', warnInk: '#121A3B',
   shadow: 'rgba(18,26,59,0.10)',
   peach: '#FFDFD2', butter: '#FFD84A', sage: '#BFE8D2', sky: '#D8D0FF', rose: '#EFE6FF', cream: '#FBF4EA', deepA: '#121A3B', deepB: '#2B2F7A',
   lemon: '#FFD84A', mint: '#BFE8D2', lavender: '#D8D0FF', line6: 'rgba(18,26,59,0.06)'

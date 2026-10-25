@@ -7,7 +7,7 @@ import { t } from '../domain/i18n';
 import { CONFIG } from '../domain/config';
 import { Button, Container, PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
-import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
+import { fonts, radius, shadows, useBreakpoint, useColors } from '../ui/theme';
 import { Icon } from '../app-ui/blocks';
 import { menu } from './content';
 
@@ -67,7 +67,7 @@ export function TopBar() {
 
 function Dd({ children, size, color }: { children: any; size: number; color?: string }) {
   const c = useColors();
-  return <RNText style={{ fontFamily: fonts.siteBold, fontSize: size, lineHeight: Math.round(size * 1.1), letterSpacing: -size * 0.03, color: color ?? c.ink }}>{children}</RNText>;
+  return <RNText style={{ fontFamily: fonts.siteBold, fontSize: size, lineHeight: Math.round(size * 1.1), letterSpacing: -size * 0.02, color: color ?? c.ink }}>{children}</RNText>;
 }
 
 /** Açılır panel: sol kategoriler, ortada ilgili özellikler, sağda kayıt kartı. */
@@ -80,7 +80,7 @@ function MegaPanel({ onPick, go }: { onPick: () => void; go: (p: string) => void
   return (
     <View style={{ position: 'absolute', top: 76, left: 0, right: 0, zIndex: 60 }}>
       <Animated.View entering={FadeInDown.duration(200)} exiting={FadeOut.duration(120)}
-        style={{ backgroundColor: c.surface, borderRadius: 32, borderWidth: 1, borderColor: c.line, padding: 14, flexDirection: 'row', gap: 6, shadowColor: '#121A3B', shadowOpacity: 0.16, shadowRadius: 40, shadowOffset: { width: 0, height: 24 } }}>
+        style={{ backgroundColor: c.surface, borderRadius: 32, borderWidth: 1, borderColor: c.line, padding: 14, flexDirection: 'row', gap: 6, boxShadow: shadows.lift }}>
         <View style={{ width: 270, gap: 4 }} accessibilityRole="tablist">
           {cats.map((x) => {
             const on = x.id === active;

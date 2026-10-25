@@ -7,7 +7,7 @@ import Animated, { FadeIn, FadeInUp, FadeOut, SlideInDown } from 'react-native-r
 import { t } from '../domain/i18n';
 import { host } from '../domain/host';
 import { Button, PressScale, Text } from '../ui/kit';
-import { fonts, radius, useColors } from '../ui/theme';
+import { fonts, radius, shadows, useColors } from '../ui/theme';
 import { Icon } from './blocks';
 import { CelebrateBurst } from '../ui/motion';
 
@@ -101,7 +101,7 @@ function ToastLayer({ toasts, dismiss, inModal }: { toasts: Toast[]; dismiss: (i
     <View pointerEvents="box-none" style={{ position: 'absolute', top: 12, left: 12, right: 12, alignItems: 'center', gap: 8, zIndex: 100 }}>
       {toasts.map((n) => (
         <Animated.View key={n.id} entering={FadeInUp.springify().damping(20)} exiting={FadeOut} accessibilityRole="alert"
-          style={{ width: '100%', maxWidth: 460, flexDirection: 'row', gap: 12, backgroundColor: c.surface, borderRadius: radius.lg, padding: 14, borderWidth: 1, borderColor: c.line, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } }}>
+          style={{ width: '100%', maxWidth: 460, flexDirection: 'row', gap: 12, backgroundColor: c.surface, borderRadius: radius.lg, padding: 14, borderWidth: 1, borderColor: c.line, boxShadow: shadows.lift }}>
           <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
             <Icon name={n.icon || 'bell'} size={19} color={c.accentInk} />
           </View>

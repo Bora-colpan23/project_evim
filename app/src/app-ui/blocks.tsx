@@ -1,3 +1,4 @@
+import { Grain } from '../ui/Grain';
 import { ReactNode } from 'react';
 import { Linking, Pressable, ScrollView, StyleProp, View, ViewStyle, Image } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
@@ -47,6 +48,7 @@ export function Hero({ children, style, gap = 12 }: { children?: ReactNode; styl
         <Path d="M-10 230 C 90 190, 180 270, 300 215 S 390 190, 420 205" stroke="#fff" strokeOpacity={0.13} strokeWidth={1.5} fill="none" />
         <Path d="M250 -10 C 300 60, 230 120, 330 190" stroke="#fff" strokeOpacity={0.1} strokeWidth={1.5} fill="none" />
       </Svg>
+      <Grain />
       {children}
     </View>
   );

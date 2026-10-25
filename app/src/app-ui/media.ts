@@ -3,14 +3,21 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Platform } from 'react-native';
 
 export type Picked = { name: string; dataUrl: string | null; isImage: boolean; uri?: string; mime?: string; size?: number };
 
+/** Görseli küçültür. Web'de WebP denenir (aynı kalitede çok daha küçük); tarayıcı WebP üretemezse
+    (bazı Safari sürümleri sessizce PNG verir) JPEG'e dönülür. WebP dosyası "RIFF" (base64: UklGR) ile başlar. */
 async function shrink(uri: string, width = 720): Promise<string | null> {
+  const run = (format: ImageManipulator.SaveFormat, compress: number) =>
+    ImageManipulator.manipulateAsync(uri, [{ resize: { width } }], { compress, format, base64: true });
   try {
-    const r = await ImageManipulator.manipulateAsync(uri, [{ resize: { width } }], {
-      compress: 0.62, format: ImageManipulator.SaveFormat.JPEG, base64: true
-    });
+    if (Platform.OS === 'web') {
+      const w = await run(ImageManipulator.SaveFormat.WEBP, 0.7);
+      if (w.base64 && w.base64.startsWith('UklGR')) return 'data:image/webp;base64,' + w.base64;
+    }
+    const r = await run(ImageManipulator.SaveFormat.JPEG, 0.62);
     return r.base64 ? 'data:image/jpeg;base64,' + r.base64 : null;
   } catch { return null; }
 }

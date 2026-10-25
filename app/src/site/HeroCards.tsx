@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { Text as RNText, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated';
 import { t } from '../domain/i18n';
-import { fonts, radius, useColors } from '../ui/theme';
+import { fonts, radius, shadows, useColors } from '../ui/theme';
 import { Icon, Steps } from '../app-ui/blocks';
 
 export const CARD_W = 248, CARD_H = 176;
@@ -27,7 +27,7 @@ function FloatCard({ tag, tone, scenes, delay = 0, w = CARD_W }: { tag: string; 
   }, [reduced, delay, scenes.length]);
   const float = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
   return (
-    <Animated.View style={[{ width: w, height: CARD_H * (w / CARD_W), borderRadius: 18, overflow: 'hidden', backgroundColor: tone, shadowColor: '#121A3B', shadowOpacity: 0.16, shadowRadius: 22, shadowOffset: { width: 0, height: 12 } }, float]}>
+    <Animated.View style={[{ width: w, height: CARD_H * (w / CARD_W), borderRadius: 18, overflow: 'hidden', backgroundColor: tone, boxShadow: shadows.lift }, float]}>
       <Animated.View key={i} entering={FadeIn.duration(600)} exiting={FadeOut.duration(600)} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, padding: 14, paddingTop: 44, justifyContent: 'center' }}>
         {scenes[i]}
       </Animated.View>

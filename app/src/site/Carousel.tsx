@@ -113,7 +113,7 @@ export function FeatureCarousel({ go }: { go: (p: string) => void }) {
         onScroll={(e) => setX(e.nativeEvent.contentOffset.x)} contentContainerStyle={{ gap, paddingVertical: 4, paddingRight: 8 }}>
         {cards.map((m: any, i: number) => (
           <View key={m.id} style={{ width: cw, backgroundColor: c.surface, borderRadius: 32, borderWidth: 1, borderColor: c.line, padding: 22, gap: 14 }}>
-            <RNText style={{ fontFamily: fonts.siteBold, fontSize: 22, lineHeight: 25, letterSpacing: -0.6, color: c.ink }}>{m.title}</RNText>
+            <RNText style={{ fontFamily: fonts.siteBold, fontSize: 22, lineHeight: 25, letterSpacing: -0.4, color: c.ink }}>{m.title}</RNText>
             <Text v="small" muted style={{ minHeight: 60 }}>{m.body}</Text>
             <View style={{ height: 190, borderRadius: 22, backgroundColor: tones[i % tones.length], padding: 16, justifyContent: 'center' }}><Art id={m.id} /></View>
             <Button kind="primary" block title={t('Hemen dene')} onPress={() => go('/kayit')} />

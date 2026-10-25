@@ -1,7 +1,7 @@
 /* Tanıtım sayfası. Yön: yumuşak yuvarlak sans, pastel renk alanları, çok yuvarlak çerçeveler,
    hap biçimli arayüz parçaları ve koyu eğrili bir alan (referans marka çalışmasının dili, Kiracım paletiyle). */
 import { useEffect, useRef, useState } from 'react';
-import { Linking, ScrollView, Text as RNText, View } from 'react-native';
+import { Linking, Platform, ScrollView, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown, FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
@@ -17,13 +17,14 @@ import { Icon, Steps } from '../app-ui/blocks';
 import { features, planPoints, plans } from './content';
 import { Nav, TopBar } from './Navbar';
 import { FeatureCarousel } from './Carousel';
+import { Grain } from '../ui/Grain';
 
 const enter = (i: number) => FadeInDown.delay(60 + i * 80).springify().damping(22).stiffness(120);
 
 /** Site başlık yazısı: yuvarlak geometrik sans, sıkı iz. */
 function D({ children, size, color, style }: { children: any; size: number; color?: string; style?: any }) {
   const c = useColors();
-  return <RNText style={[{ fontFamily: fonts.siteBold, fontSize: size, lineHeight: Math.round(size * 1.04), letterSpacing: -size * 0.035, color: color ?? c.ink }, style]}>{children}</RNText>;
+  return <RNText style={[{ fontFamily: fonts.siteBold, fontSize: size, lineHeight: Math.round(size * 1.04), letterSpacing: -size * 0.02, color: color ?? c.ink }, style]}>{children}</RNText>;
 }
 
 function Logo({ onDark, animate }: { onDark?: boolean; animate?: boolean }) {
@@ -169,6 +170,7 @@ function Words() {
           <Path d="M-20 480 C 240 420, 470 560, 720 450 S 1000 400, 1040 420" stroke="#fff" strokeOpacity={0.09} strokeWidth={2} fill="none" />
           <Path d="M620 -20 C 700 140, 560 260, 760 420" stroke="#fff" strokeOpacity={0.12} strokeWidth={2} fill="none" />
         </Svg>
+        <Grain />
         <View style={{ padding: phone ? 26 : 64, gap: phone ? 6 : 14 }}>
           <Text v="label" color="#E8B9A6">{t('Tek yerde')}</Text>
           <View style={{ height: size * 1.12, justifyContent: 'center' }}>
@@ -249,13 +251,21 @@ function Features({ onLayout, go }: { onLayout: (y: number) => void; go: (p: str
 
 
 /** Nasıl çalışır: üç adım ve iki tarafın ne yaptığı, düz anlatım. */
+/** Çerçeve (outline) adım numarası: web'de içi boş, çizgili; yerel uygulamada soluk dolgu. */
+function Outline({ n }: { n: string }) {
+  const c = useColors();
+  const rgb = c.ink === '#121A3B' ? '18,26,59' : '251,244,234';
+  const web: any = Platform.OS === 'web' ? { color: 'transparent', WebkitTextStroke: `1.5px rgba(${rgb},0.42)` } : { color: `rgba(${rgb},0.18)` };
+  return <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[{ fontFamily: fonts.display, fontSize: 96, lineHeight: 92, letterSpacing: -2 }, web]}>{n}</Text>;
+}
+
 function How() {
   const c = useColors();
   const { desktop, phone } = useBreakpoint();
-  const steps: [string, string, string, string][] = [
-    ['1', t('Hesap aç'), t('Kiracı hesabı ücretsizdir. Mülk sahibi hesabı 14 gün kartsız denenir.'), c.sky],
-    ['2', t('Mülkü ekle, kiracıyı davet et'), t('Mülk sahibi mülkü ekler ve davet bağlantısı ya da kodu kiracıya gönderir. Kiracı kayıt olunca mülke bağlanır.'), c.butter],
-    ['3', t('Birlikte takip edin'), t('Dekont, talep, belge ve tutanak tek kayıtta durur. Aynı kaydı iki taraf da kendi ekranında görür.'), c.sage]
+  const steps: [string, string, string, string, string][] = [
+    ['01', t('Hesap aç'), t('Kiracı hesabı ücretsizdir. Mülk sahibi hesabı 14 gün kartsız denenir.'), c.sky, t('Kiracıysan ev sahibinden gelen davet bağlantısıyla kayıt ol.')],
+    ['02', t('Mülkü ekle, kiracıyı davet et'), t('Mülk sahibi mülkü ekler ve davet bağlantısı ya da kodu kiracıya gönderir. Kiracı kayıt olunca mülke bağlanır.'), c.butter, t('Davet kodunu mesajla da gönderebilirsin.')],
+    ['03', t('Birlikte takip edin'), t('Dekont, talep, belge ve tutanak tek kayıtta durur. Aynı kaydı iki taraf da kendi ekranında görür.'), c.sage, t('Sorun olursa yazışmaya fotoğraf ekle, görsel anlatsın.')]
   ];
   const lists: [string, string, string[]][] = [
     [t('Kiracı için'), c.peach, [t('Kira ve ödeme durumunu görür, dekont yükler'), t('Arıza ve tadilat talebi açar, durumunu izler'), t('Mesajlaşır, belgelerine ve giriş tutanağına bakar'), t('Sözleşme yenileme teklifini kabul eder ya da görüşmeye çağırır')]],
@@ -268,13 +278,17 @@ function How() {
         <D size={phone ? 36 : 68}>{t('Üç adımda başla.')}</D>
       </View>
       <View style={{ flexDirection: desktop ? 'row' : 'column', gap: 16 }}>
-        {steps.map(([n, title, body, bg]) => (
-          <View key={n} style={{ flex: 1, backgroundColor: bg, borderRadius: 36, padding: 28, gap: 14, minHeight: 240 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
-              <D size={22}>{n}</D>
-            </View>
+        {steps.map(([n, title, body, bg, tip]) => (
+          <View key={n} style={{ flex: 1, backgroundColor: bg, borderRadius: 36, padding: 28, gap: 14, minHeight: 240, overflow: 'hidden' }}>
+            <Outline n={n} />
             <D size={26}>{title}</D>
             <Text v="body" style={{ fontSize: 16, lineHeight: 24 }}>{body}</Text>
+            <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start', marginTop: 'auto' as any }}>
+              <View style={{ backgroundColor: '#121A3B', borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 3 }}>
+                <Text v="label" color="#FBF4EA" style={{ fontFamily: fonts.bodyBold }}>{t('İpucu')}</Text>
+              </View>
+              <Text v="small" style={{ flex: 1, fontFamily: fonts.bodyMedium }}>{tip}</Text>
+            </View>
           </View>
         ))}
       </View>
@@ -328,6 +342,7 @@ function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: numb
                   <Path d="M-10 470 C 120 410, 240 530, 410 440" stroke="#fff" strokeOpacity={0.14} strokeWidth={2} fill="none" />
                 </Svg>
               )}
+              {p.best && <Grain />}
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                 <D size={26} color={p.best ? '#FFF3EA' : c.ink}>{t('Mülk sahibi')} · {p.name}</D>
                 {p.best && <Chip tone="warn" label={p.note} />}

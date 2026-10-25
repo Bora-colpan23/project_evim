@@ -75,7 +75,7 @@ test('kiracı dekont yükler; denetim kaydı düşer, mülk sahibi onaydan önce
   await expect.poll(async () => (await db(page)).tables.reviews.length).toBe(1);   // eşitleme gecikmeli çalışır
   const d = await db(page);
   expect(d.tables.reviews[0]).toMatchObject({ kind: 'payment', status: 'pending', property_id: 'p1' });
-  expect(d.tables.reviews[0].path).toMatch(/^p1\/.+\.jpg$/);              // dosya depoya yüklendi
+  expect(d.tables.reviews[0].path).toMatch(/^p1\/.+\.(webp|jpg)$/);              // dosya depoya yüklendi
   expect(d.tables.payments).toHaveLength(1);
   expect(Object.keys(d.storage)).toHaveLength(1);
 
@@ -226,7 +226,7 @@ test('yazışmaya fotoğraf eklenir; karşı taraf fotoğrafı mesajda görür',
   await expect(page.getByLabel('Fotoğrafı büyüt')).toBeVisible();
   await expect.poll(async () => (await db(page)).tables.messages.filter(m => m.image_path).length).toBe(1);
   const m = (await db(page)).tables.messages.find(x => x.image_path);
-  expect(m.image_path).toMatch(/^p1\/.+\.jpg$/);
+  expect(m.image_path).toMatch(/^p1\/.+\.(webp|jpg)$/);
   expect((await db(page)).tables.reviews).toHaveLength(0);       // fotoğraf yönetici denetimine girmez
 
   await login(page, 'ev@ornek.com');

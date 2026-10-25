@@ -42,6 +42,13 @@ export const fonts = {
   siteBold: 'InterTight_800ExtraBold'
 };
 
+/** Katmanlı yumuşak gölgeler: Gece Mürekkebi tonlu, üst üste üç katman (yakın, orta, uzak).
+    Yalnız yüzen yüzeylerde (kayan kart, menü, sekme çubuğu, bildirim); düz kartlar çerçeveyle kalır. */
+export const shadows = {
+  soft: '0 1px 2px rgba(18,26,59,0.05), 0 4px 10px rgba(18,26,59,0.06), 0 14px 28px rgba(18,26,59,0.08)',
+  lift: '0 2px 4px rgba(18,26,59,0.05), 0 8px 16px rgba(18,26,59,0.07), 0 24px 48px rgba(18,26,59,0.12)'
+};
+
 export const radius = { sm: 12, md: 16, lg: 24, xl: 32, pill: 999 };
 export const space = (n: number) => n * 4;
 

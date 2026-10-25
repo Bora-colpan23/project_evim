@@ -5,6 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { t } from '../domain/i18n';
 import { PressScale, Text } from '../ui/kit';
 import { Wordmark } from '../ui/Wordmark';
+import { Grain } from '../ui/Grain';
 import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
 
 /** Giriş, kayıt ve şifre ekranlarının ortak iskeleti: geniş ekranda solda marka paneli. */
@@ -15,7 +16,8 @@ export default function AuthShell({ title, lead, children }: { title: string; le
   return (
     <View style={{ flex: 1, flexDirection: desktop ? 'row' : 'column', backgroundColor: c.cream }}>
       {desktop && (
-        <View style={{ flex: 0.8, backgroundColor: c.deepA, margin: 14, borderRadius: 40, padding: 56, justifyContent: 'space-between' }}>
+        <View style={{ flex: 0.8, backgroundColor: c.deepA, margin: 14, borderRadius: 40, padding: 56, justifyContent: 'space-between', overflow: 'hidden' }}>
+          <Grain />
           <PressScale onPress={() => router.replace('/')} accessibilityRole="link"><Wordmark size={34} color={c.heroInk} animate /></PressScale>
           <View style={{ gap: 16, maxWidth: 440 }}>
             <Text v="h1" color="#FFF3EA" style={{ fontFamily: fonts.siteBold, fontSize: 56, lineHeight: 53 }}>{t('Kira işi, ev kadar rahat.')}</Text>

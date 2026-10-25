@@ -6,7 +6,7 @@ import { P, openReqs, newReqs } from '../domain/logic';
 import { t } from '../domain/i18n';
 import { toApp } from '../domain/nav';
 import { PressScale, Text } from '../ui/kit';
-import { fonts, radius, useBreakpoint, useColors } from '../ui/theme';
+import { fonts, radius, shadows, useBreakpoint, useColors } from '../ui/theme';
 import { Icon } from './blocks';
 import { Wordmark } from '../ui/Wordmark';
 import { useLangTick, useStore } from './hooks';
@@ -55,7 +55,7 @@ function TabBar({ list }: { list: Item[] }) {
   const router = useRouter();
   const active = useActive();
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 999, marginHorizontal: 12, marginBottom: 12, marginTop: 4, paddingVertical: 4, paddingHorizontal: 6, shadowColor: '#3A1A12', shadowOpacity: 0.12, shadowRadius: 24, shadowOffset: { width: 0, height: 10 } }}>
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, borderRadius: 999, marginHorizontal: 12, marginBottom: 12, marginTop: 4, paddingVertical: 4, paddingHorizontal: 6, boxShadow: shadows.soft }}>
       {list.map((it) => {
         const on = active(it.path);
         return (

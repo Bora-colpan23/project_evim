@@ -240,10 +240,11 @@ test('ana sayfa üst menüsü oturum açıkken de "Giriş yap" ve "Kayıt ol" g�
   await expect(page.getByText('Uygulamayı aç')).toHaveCount(0);
 });
 
-test('ana sayfa: duyuru şeridi, açılır özellik menüsü, kartlar, SSS ve yukarı çık', async ({ page }) => {
+test('ana sayfa: duyuru şeridi, açılır özellik menüsü ve kayan özellik kartları, SSS', async ({ page }) => {
   await page.goto(url('/'));
   await expect(page.getByText('Kiracılar ücretsiz · Mülk sahipleri 14 gün kartsız dener')).toBeVisible();
-  await expect(page.getByRole('heading', { level: 1 }).or(page.getByText('ev kadar').first())).toBeVisible();
+  // Başlığın yanındaki yüzen kartlar (ödeme, yazışma, talep, depozito).
+  for (const tag of ['Ödemeler', 'Yazışma', 'Talepler', 'Depozito']) await expect(page.getByText(tag, { exact: true }).first()).toBeVisible();
   // Üzerine gelmek açmaz; basınca açılır ve fare çekilse de açık kalır.
   await page.getByRole('button', { name: 'Özellikler' }).hover();
   await expect(page.getByText('Dekont yükleme')).toHaveCount(0);
@@ -263,6 +264,9 @@ test('ana sayfa: duyuru şeridi, açılır özellik menüsü, kartlar, SSS ve yu
   await expect(page.getByText('Dekont yükleme')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByText('Dekont yükleme')).toHaveCount(0);
+  await expect(page.getByText('Fotoğraflı yazışma')).toBeVisible();
+  await page.getByRole('button', { name: 'Sonraki' }).click();
+  await expect(page.getByRole('button', { name: 'Hemen dene' }).first()).toBeVisible();
   // Üst menüden SSS'ye inilir; soru basınca açılır, yeniden basınca kapanır.
   await page.getByRole('link', { name: 'SSS' }).first().click();
   const q = page.getByRole('button', { name: 'Kiracı olarak ücret öder miyim?' });
@@ -273,8 +277,6 @@ test('ana sayfa: duyuru şeridi, açılır özellik menüsü, kartlar, SSS ve yu
   await expect(page.getByText('Hayır. Kiracı hesapları her zaman ücretsizdir.')).toBeVisible();
   await q.click();
   await expect(q).toHaveAttribute('aria-expanded', 'false');
-  // Aşağıdayken "Yukarı çık" düğmesi görünür.
-  await expect(page.getByRole('button', { name: 'Yukarı çık' })).toBeVisible();
 });
 
 /** Derlenmiş her sayfa: içerik güvenlik politikası var, her satır içi betik özetle izinli. */

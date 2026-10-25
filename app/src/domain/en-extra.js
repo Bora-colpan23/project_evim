@@ -211,5 +211,11 @@ export const EN_EXTRA = {
   'Üç adımda başla.': 'Start in three steps.',
   'İki taraf da onayla': 'Both sides approve',
   'İletişim': 'Contact',
-  'İpucu': 'Tip'
+  'İpucu': 'Tip',
+  'ödemeden çıkışa.': 'from payment to move-out.',
+  'Kiracı ücretsiz.': 'Free for tenants.',
+  'Bilgilerin güvende.': 'Your information is safe.',
+  'güvende.': 'safe.',
+  'sorular': 'questions',
+  'Güven': 'Trust'
 };

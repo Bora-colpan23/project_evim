@@ -117,7 +117,7 @@ function MegaPanel({ onPick, go }: { onPick: () => void; go: (p: string) => void
               </View>
               <Dd size={20}>{t('Ücretsiz hesabını aç')}</Dd>
               <Text v="small" muted>{t('Kiracılar ücretsiz. Mülk sahipleri 14 gün kartsız dener.')}</Text>
-              <Button title={t('Kayıt ol')} onPress={() => { onPick(); go('/kayit'); }} />
+              <Button kind="aqua" title={t('Kayıt ol')} onPress={() => { onPick(); go('/kayit'); }} />
             </View>
           </>
         )}
@@ -160,8 +160,8 @@ export function Nav({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: s
               </View>
             )}
             <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-              <Button kind="glow" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
-              <Button title={t('Kayıt ol')} onPress={() => go('/kayit')} style={phone ? { paddingHorizontal: 14, minHeight: 44 } : undefined} />
+              <Button kind="aqua" title={t('Giriş yap')} onPress={() => go('/giris')} style={phone ? { paddingHorizontal: 10, minHeight: 44 } : undefined} />
+              <Button kind="aqua" title={t('Kayıt ol')} onPress={() => go('/kayit')} style={phone ? { paddingHorizontal: 14, minHeight: 44 } : undefined} />
             </View>
           </View>
           {open && !phone && (

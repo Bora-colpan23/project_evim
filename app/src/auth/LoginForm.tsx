@@ -23,7 +23,7 @@ export default function LoginForm({ as }: { as: Entry }) {
     <AuthShell title={t(TITLE[as])} lead={live ? undefined : t('Bu sürümde hesap bu cihazda tutulur. Sunucu kurulunca hesaplar cihazlar arası çalışır.')}>
       <Field label={t('E-posta')} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" textContentType="emailAddress" />
       <Field label={t('Şifre')} value={pw} onChangeText={setPw} secureTextEntry autoComplete="current-password" textContentType="password" onSubmitEditing={submit} error={err} />
-      <Button block title={t('Giriş yap')} onPress={submit} loading={busy} />
+      <Button kind="aqua" block title={t('Giriş yap')} onPress={submit} loading={busy} />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <PressScale onPress={() => router.push('/sifre')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontWeight: '700' }}>{t('Şifremi unuttum')}</Text></PressScale>
         {as !== 'admin' ? <PressScale onPress={() => router.push(as === 'tenant' ? '/kayit/kiraci' : '/kayit/mulk-sahibi')} accessibilityRole="link"><Text v="small" color={c.accentText} style={{ fontWeight: '700' }}>{t('Hesabın yok mu? Kayıt ol')}</Text></PressScale> : null}

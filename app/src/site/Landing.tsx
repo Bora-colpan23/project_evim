@@ -101,7 +101,7 @@ function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string)
           ))}
         </View>
         <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Button title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
+          <Button kind="aqua" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
           <Button kind="glow" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
         </View>
       </Animated.View>
@@ -317,7 +317,7 @@ function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: numb
             <D size={54}>{t('Ücretsiz')}</D>
             <Text v="body" style={{ fontSize: 16 }}>{t('Dekont yükle, talep aç, mesaj yaz, belgelerine bak. Her zaman.')}</Text>
             <View style={{ flex: 1, minHeight: 20 }} />
-            <Button kind="dark" block title={t('Kiracı olarak kayıt ol')} onPress={() => go('/kayit/kiraci')} style={{ minHeight: 56 }} />
+            <Button kind="aqua" block title={t('Kiracı olarak kayıt ol')} onPress={() => go('/kayit/kiraci')} style={{ minHeight: 56 }} />
           </View>
           {plans().map((p) => (
             <View key={p.id} style={{ flex: 1, backgroundColor: p.best ? c.deepA : c.surface, borderRadius: 36, padding: 30, gap: 14, borderWidth: p.best ? 0 : 1, borderColor: c.line, overflow: 'hidden' }}>
@@ -346,7 +346,7 @@ function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: numb
                 ))}
               </View>
               <View style={{ flex: 1, minHeight: 10 }} />
-              <Button kind={p.best ? 'primary' : 'dark'} block title={t('14 gün ücretsiz dene')} onPress={() => go('/kayit/mulk-sahibi')} style={{ minHeight: 56 }} />
+              <Button kind="aqua" block title={t('14 gün ücretsiz dene')} onPress={() => go('/kayit/mulk-sahibi')} style={{ minHeight: 56 }} />
             </View>
           ))}
         </View>
@@ -429,7 +429,7 @@ export default function Landing() {
       <Footer />
     </ScrollView>
     <View pointerEvents="box-none" style={{ position: 'absolute', right: 18, bottom: 18 }}>
-      <Button kind="glow" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 48, shadowOpacity: 0.28, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }} />
+      <Button kind="aqua" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 48 }} />
     </View>
     </View>
   );

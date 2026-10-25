@@ -57,6 +57,18 @@ export function PressScale({ children, style, wrapStyle, scaleTo = 0.97, ...rest
   );
 }
 
+/** Mavi gradyan düğme (Uiverse): üzerine gelince gradyan kayar, içte ışıltılı gölge, odakta çift halka. */
+const BLUE1 = 'hsla(194, 100%, 69%, 1)', BLUE2 = 'hsla(217, 100%, 56%, 1)';
+function aquaStyle(hover: boolean, focus: boolean, off: boolean): any {
+  const shadow = focus
+    ? '0 0 0 3px #FFFFFF, 0 0 0 6px ' + BLUE2
+    : '0px 0px 20px rgba(71,184,255,0.5), 0px 5px 5px -1px rgba(58,125,233,0.25), inset 4px 4px 8px rgba(175,230,255,0.5), inset -4px -4px 8px rgba(19,95,216,0.35)';
+  const web: any = Platform.OS === 'web'
+    ? { backgroundImage: `linear-gradient(325deg, ${BLUE2} 0%, ${BLUE1} 55%, ${BLUE2} 90%)`, backgroundSize: '280% auto', backgroundPosition: hover ? 'right top' : 'left top', transitionProperty: 'background-position', transitionDuration: '0.8s' }
+    : null;
+  return { borderRadius: 12, borderWidth: 0, boxShadow: shadow, opacity: off ? 0.6 : 1, ...web };
+}
+
 /** Düğmenin arkasında dönen, bulanık gradyan leke (pembe → mor → camgöbeği). Üzerine gelince küçülür. */
 function GlowBlob({ hover }: { hover: boolean }) {
   const reduced = useReducedMotion();
@@ -86,15 +98,17 @@ function GlowBlob({ hover }: { hover: boolean }) {
 }
 
 export function Button({ title, onPress, kind = 'primary', block, disabled, loading, style, icon }: {
-  title: string; onPress?: () => void; kind?: 'primary' | 'dark' | 'ghost' | 'quiet' | 'onDark' | 'glow';
+  title: string; onPress?: () => void; kind?: 'primary' | 'dark' | 'ghost' | 'quiet' | 'onDark' | 'glow' | 'aqua';
   block?: boolean; disabled?: boolean; loading?: boolean; style?: StyleProp<ViewStyle>; icon?: ReactNode;
 }) {
   const c = useColors();
   const [hover, setHover] = useState(false);
+  const [focus, setFocus] = useState(false);
   const glow = kind === 'glow';
+  const aqua = kind === 'aqua';
   const off = !!(disabled || loading);
-  const bg = glow ? (hover ? '#C1E4F8' : c.surface) : off && (kind === 'primary' || kind === 'dark') ? c.line6 : kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
-  const fg = glow ? (hover ? '#210055' : c.ink) : off && (kind === 'primary' || kind === 'dark') ? c.muted : kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
+  const bg = aqua ? '#3DA5FF' : glow ? (hover ? '#C1E4F8' : c.surface) : off && (kind === 'primary' || kind === 'dark') ? c.line6 : kind === 'primary' ? c.accent : kind === 'dark' ? c.ink : 'transparent';
+  const fg = aqua ? '#FFFFFF' : glow ? (hover ? '#210055' : c.ink) : off && (kind === 'primary' || kind === 'dark') ? c.muted : kind === 'primary' ? c.accentInk : kind === 'dark' ? c.bg : kind === 'onDark' ? c.heroInk : c.ink;
   const border = kind === 'ghost' ? c.ink : kind === 'onDark' ? 'rgba(251,244,234,0.45)' : 'transparent';
   return (
     <PressScale
@@ -102,12 +116,15 @@ export function Button({ title, onPress, kind = 'primary', block, disabled, load
       accessibilityState={{ disabled: !!(disabled || loading) }}
       disabled={disabled || loading}
       onPress={onPress}
-      onHoverIn={glow ? () => setHover(true) : undefined}
-      onHoverOut={glow ? () => setHover(false) : undefined}
+      onHoverIn={glow || aqua ? () => setHover(true) : undefined}
+      onHoverOut={glow || aqua ? () => setHover(false) : undefined}
+      onFocus={aqua ? () => setFocus(true) : undefined}
+      onBlur={aqua ? () => setFocus(false) : undefined}
       style={[
         {
           minHeight: 56, paddingHorizontal: 26, borderRadius: radius.pill, backgroundColor: bg,
           borderWidth: glow ? 0 : 1.5, borderColor: border,
+          ...(aqua ? aquaStyle(hover, focus, off) : null),
           ...(glow ? { overflow: 'hidden' as const, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 0 } } : null), flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
           alignSelf: block ? 'stretch' : 'flex-start'
         },

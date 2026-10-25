@@ -113,7 +113,7 @@ export function PayButton({ title, doneTitle, onPress, style }: { title: string;
   const done = state === 'done';
   return (
     <Pressable onPress={run} accessibilityRole="button" accessibilityLabel={done ? doneTitle : title} accessibilityState={{ busy: state === 'busy' }}
-      style={[{ minHeight: 48, borderRadius: radius.pill, backgroundColor: done ? '#1F9D55' : c.accent, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10, paddingHorizontal: 20 }, style]}>
+      style={[{ minHeight: 52, borderRadius: radius.pill, backgroundColor: done ? '#1F7A55' : c.accent, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10, paddingHorizontal: 20 }, style]}>
       {state === 'busy' ? (
         <Animated.View style={ring}>
           <Svg width={22} height={22} viewBox="0 0 22 22"><Circle cx="11" cy="11" r="8.5" stroke="rgba(255,255,255,0.35)" strokeWidth={3} fill="none" /><Path d="M11 2.5 A8.5 8.5 0 0 1 19.5 11" stroke="#fff" strokeWidth={3} strokeLinecap="round" fill="none" /></Svg>

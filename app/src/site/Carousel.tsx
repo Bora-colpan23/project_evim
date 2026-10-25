@@ -116,7 +116,7 @@ export function FeatureCarousel({ go }: { go: (p: string) => void }) {
             <RNText style={{ fontFamily: fonts.siteBold, fontSize: 22, lineHeight: 25, letterSpacing: -0.6, color: c.ink }}>{m.title}</RNText>
             <Text v="small" muted style={{ minHeight: 60 }}>{m.body}</Text>
             <View style={{ height: 190, borderRadius: 22, backgroundColor: tones[i % tones.length], padding: 16, justifyContent: 'center' }}><Art id={m.id} /></View>
-            <Button kind="glow" block title={t('Hemen dene')} onPress={() => go('/kayit')} />
+            <Button kind="primary" block title={t('Hemen dene')} onPress={() => go('/kayit')} />
           </View>
         ))}
       </ScrollView>

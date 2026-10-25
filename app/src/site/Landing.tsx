@@ -86,7 +86,7 @@ function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string)
           </Pill>
         </Animated.View>
         <Slam delay={320} height={Math.round(size * 1.12)}><D size={size}>{t('ev kadar')}</D></Slam>
-        <Slam delay={490} height={Math.round(size * 1.12)}><D size={size} color={c.accentText}>{t('rahat.')}</D></Slam>
+        <Slam delay={490} height={Math.round(size * 1.12)}><D size={size} color={c.accent}>{t('rahat.')}</D></Slam>
       </View>
       <Animated.View entering={enter(4)} style={{ alignItems: 'center', gap: 18, maxWidth: 520 }}>
         <Text v="body" style={{ fontSize: phone ? 16 : 18, lineHeight: phone ? 24 : 27, textAlign: 'center' }}>
@@ -101,8 +101,8 @@ function Hero({ go, scrollTo }: { go: (p: string) => void; scrollTo: (k: string)
           ))}
         </View>
         <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Button kind="aqua" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
-          <Button kind="glow" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
+          <Button kind="primary" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} />
+          <Button kind="ghost" title={t('Fiyatları gör')} onPress={() => scrollTo('fiyat')} />
         </View>
       </Animated.View>
     </View>
@@ -141,7 +141,7 @@ function Manifesto() {
         <Text v="label" color={c.ink}>{t('Kiracım böyle düşünür')}</Text>
         {lines.map((l, i) => (
           <Animated.View key={l} entering={FadeInDown.delay(i * 80).duration(280)}>
-            <D size={phone ? 26 : 56} color={i === 2 ? c.accentText : c.ink}>{l}</D>
+            <D size={phone ? 26 : 56} color={i === 2 ? c.accent : c.ink}>{l}</D>
           </Animated.View>
         ))}
       </View>
@@ -317,7 +317,7 @@ function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: numb
             <D size={54}>{t('Ücretsiz')}</D>
             <Text v="body" style={{ fontSize: 16 }}>{t('Dekont yükle, talep aç, mesaj yaz, belgelerine bak. Her zaman.')}</Text>
             <View style={{ flex: 1, minHeight: 20 }} />
-            <Button kind="aqua" block title={t('Kiracı olarak kayıt ol')} onPress={() => go('/kayit/kiraci')} style={{ minHeight: 56 }} />
+            <Button kind="primary" block title={t('Kiracı olarak kayıt ol')} onPress={() => go('/kayit/kiraci')} style={{ minHeight: 52 }} />
           </View>
           {plans().map((p) => (
             <View key={p.id} style={{ flex: 1, backgroundColor: p.best ? c.deepA : c.surface, borderRadius: 36, padding: 30, gap: 14, borderWidth: p.best ? 0 : 1, borderColor: c.line, overflow: 'hidden' }}>
@@ -346,7 +346,7 @@ function Pricing({ go, onLayout }: { go: (p: string) => void; onLayout: (y: numb
                 ))}
               </View>
               <View style={{ flex: 1, minHeight: 10 }} />
-              <Button kind="aqua" block title={t('14 gün ücretsiz dene')} onPress={() => go('/kayit/mulk-sahibi')} style={{ minHeight: 56 }} />
+              <Button kind="primary" block title={t('14 gün ücretsiz dene')} onPress={() => go('/kayit/mulk-sahibi')} style={{ minHeight: 52 }} />
             </View>
           ))}
         </View>
@@ -371,8 +371,8 @@ function Contact({ onLayout }: { onLayout: (y: number) => void }) {
               <Text v="body" style={{ fontSize: 16 }}>{t('Hesap, abonelik ve veri silme işlemleri için destek sayfasına ya da e-postaya ulaşabilirsin.')}</Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
-              <Button kind="dark" title={t('E-posta gönder')} onPress={mail} style={{ minHeight: 56, paddingHorizontal: 28 }} />
-              <Button kind="glow" title={t('Destek sayfası')} onPress={() => Linking.openURL(CONFIG.legal.support)} style={{ minHeight: 56, paddingHorizontal: 28, backgroundColor: 'rgba(255,255,255,0.55)' }} />
+              <Button kind="dark" title={t('E-posta gönder')} onPress={mail} style={{ minHeight: 52, paddingHorizontal: 28 }} />
+              <Button kind="ghost" title={t('Destek sayfası')} onPress={() => Linking.openURL(CONFIG.legal.support)} style={{ minHeight: 52, paddingHorizontal: 28, backgroundColor: 'rgba(255,255,255,0.55)' }} />
             </View>
           </View>
         </View>
@@ -429,7 +429,7 @@ export default function Landing() {
       <Footer />
     </ScrollView>
     <View pointerEvents="box-none" style={{ position: 'absolute', right: 18, bottom: 18 }}>
-      <Button kind="aqua" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 48 }} />
+      <Button kind="primary" title={t('Ücretsiz başla')} onPress={() => go('/kayit')} style={{ minHeight: 52 }} />
     </View>
     </View>
   );

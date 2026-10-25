@@ -112,7 +112,7 @@ export function Actions({ onCancel, submitLabel, onSubmit, busy, danger }: { onC
     <View style={{ flexDirection: 'row', gap: 10 }}>
       <Button kind="ghost" title={t('Vazgeç')} onPress={onCancel} style={{ flex: 1 }} />
       {danger
-        ? <PressScale onPress={onSubmit} accessibilityRole="button" style={{ flex: 1, minHeight: 48, borderRadius: radius.pill, backgroundColor: c.badInk, alignItems: 'center', justifyContent: 'center' }}><Text v="small" color="#fff" style={{ fontFamily: fonts.bodyXBold, fontSize: 15 }}>{submitLabel}</Text></PressScale>
+        ? <PressScale onPress={onSubmit} accessibilityRole="button" style={{ flex: 1, minHeight: 52, borderRadius: radius.pill, backgroundColor: c.badInk, alignItems: 'center', justifyContent: 'center' }}><Text v="small" color="#fff" style={{ fontFamily: fonts.bodyXBold, fontSize: 15 }}>{submitLabel}</Text></PressScale>
         : <Button title={submitLabel} onPress={onSubmit} loading={busy} style={{ flex: 1 }} />}
     </View>
   );

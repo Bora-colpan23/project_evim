@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { Slot } from 'expo-router';
 import { useFonts } from 'expo-font';
-import { BricolageGrotesque_800ExtraBold } from '@expo-google-fonts/bricolage-grotesque';
-import { HankenGrotesk_400Regular, HankenGrotesk_500Medium, HankenGrotesk_600SemiBold, HankenGrotesk_700Bold } from '@expo-google-fonts/hanken-grotesk';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { InterTight_700Bold, InterTight_800ExtraBold } from '@expo-google-fonts/inter-tight';
 import { hydrate } from '../domain/storage';
 import { initLang } from '../domain/i18n';
 import { boot } from '../domain/state';
@@ -12,7 +12,7 @@ import { useColors } from '../ui/theme';
 
 export default function Root() {
   const [fontsOk] = useFonts({
-    BricolageGrotesque_800ExtraBold, HankenGrotesk_400Regular, HankenGrotesk_500Medium, HankenGrotesk_600SemiBold, HankenGrotesk_700Bold
+    InterTight_700Bold, InterTight_800ExtraBold, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold
   });
   const [stored, setStored] = useState(false);
   useEffect(() => {

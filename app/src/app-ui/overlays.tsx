@@ -132,7 +132,7 @@ function ConfirmLayer({ confirm, done }: { confirm: Confirm | null; done: (v: bo
           {confirm.body ? <Text v="body" muted>{confirm.body}</Text> : null}
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
             <Button kind="ghost" title={t('Vazgeç')} onPress={() => done(false)} style={{ flex: 1 }} />
-            <Pressable onPress={() => done(true)} accessibilityRole="button" style={{ flex: 1, minHeight: 48, borderRadius: radius.pill, backgroundColor: confirm.danger ? c.badInk : c.accent, alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable onPress={() => done(true)} accessibilityRole="button" style={{ flex: 1, minHeight: 52, borderRadius: radius.pill, backgroundColor: confirm.danger ? c.badInk : c.accent, alignItems: 'center', justifyContent: 'center' }}>
               <Text v="small" color={confirm.danger ? '#fff' : c.accentInk} style={{ fontFamily: fonts.bodyXBold, fontSize: 15 }}>{confirm.ok || t('Tamam')}</Text>
             </Pressable>
           </View>

@@ -2,14 +2,16 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { S, subscribe, snapshot } from '../domain/state';
 import { useColorScheme, useWindowDimensions } from 'react-native';
 
-/* Kiracım marka paleti (docs/marka-kimligi.md): Krem Duvar, Gece Mürekkebi, Kiremit, Nane Pervaz, Limon Perde, Lavanta Gölge. */
+/* Kiracım marka paleti (marka kiti 04-renkler): Krem Duvar, Gece Mürekkebi, Kiremit, Nane Pervaz, Limon Perde, Lavanta Gölge. */
 export const light = {
-  bg: '#FBF4EA', surface: '#FFFCF7', surface2: '#F3EADC', line: '#EDE7E0',
-  ink: '#121A3B', muted: '#5A6180', accent: '#FF5A2E', accentInk: '#FBF4EA', accentSoft: '#FFE2D7',
+  bg: '#FBF4EA', surface: '#FFFCF7', surface2: '#E6DFD3', line: '#E6DFD3',
+  ink: '#121A3B', muted: '#4A4F63', accent: '#FF5A2E', accentInk: '#121A3B', accentSoft: '#FFDED5',
   /** Küçük metinde Kiremit (3:1'in altında) yerine okunur koyu ton. */
   accentText: '#C2360F',
+  /** Pasif düğme/öğe: Taş Gri Açık zemin, Taş Gri Orta metin. */
+  offBg: '#E6DFD3', offInk: '#9A9BA8',
   hero: '#121A3B', heroInk: '#FBF4EA', heroMuted: '#B8BCD6',
-  okBg: '#BFE8D2', okInk: '#1B5A3B', badBg: '#FFD9CC', badInk: '#9A2A0B', warnBg: '#FFE98F', warnInk: '#5E4A00',
+  okBg: '#BFE8D2', okInk: '#1F7A55', badBg: '#FBD9D5', badInk: '#D92D20', warnBg: '#FFD84A', warnInk: '#121A3B',
   shadow: 'rgba(18,26,59,0.10)',
   peach: '#FFDFD2', butter: '#FFD84A', sage: '#BFE8D2', sky: '#D8D0FF', rose: '#EFE6FF', cream: '#FBF4EA', deepA: '#121A3B', deepB: '#2B2F7A',
   lemon: '#FFD84A', mint: '#BFE8D2', lavender: '#D8D0FF', line6: 'rgba(18,26,59,0.06)'
@@ -18,6 +20,7 @@ export const dark: typeof light = {
   bg: '#0E1330', surface: '#161C42', surface2: '#1E2551', line: '#2A3263',
   ink: '#FBF4EA', muted: '#A9AECB', accent: '#FF6B42', accentInk: '#121A3B', accentSoft: '#4A2A28',
   accentText: '#FF8A68',
+  offBg: '#2A3263', offInk: '#7C82A8',
   hero: '#161C42', heroInk: '#FBF4EA', heroMuted: '#A9AECB',
   okBg: '#1E4A38', okInk: '#BFE8D2', badBg: '#4A2A28', badInk: '#FFC1AE', warnBg: '#4D4310', warnInk: '#FFE98F',
   shadow: 'rgba(0,0,0,0.5)',
@@ -27,14 +30,16 @@ export const dark: typeof light = {
 export type Colors = typeof light;
 
 export const fonts = {
-  display: 'BricolageGrotesque_800ExtraBold',
-  displayMid: 'HankenGrotesk_600SemiBold',
-  body: 'HankenGrotesk_400Regular',
-  bodyMedium: 'HankenGrotesk_500Medium',
-  bodyBold: 'HankenGrotesk_700Bold',
-  bodyXBold: 'HankenGrotesk_700Bold',
-  site: 'BricolageGrotesque_800ExtraBold',
-  siteBold: 'BricolageGrotesque_800ExtraBold'
+  /** Marka kiti: başlık Inter Display (Inter Tight), gövde ve arayüz Inter. */
+  display: 'InterTight_800ExtraBold',
+  displayBold: 'InterTight_700Bold',
+  displayMid: 'Inter_600SemiBold',
+  body: 'Inter_400Regular',
+  bodyMedium: 'Inter_500Medium',
+  bodyBold: 'Inter_700Bold',
+  bodyXBold: 'Inter_700Bold',
+  site: 'InterTight_800ExtraBold',
+  siteBold: 'InterTight_800ExtraBold'
 };
 
 export const radius = { sm: 12, md: 16, lg: 24, xl: 32, pill: 999 };

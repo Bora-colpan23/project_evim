@@ -142,3 +142,16 @@ Yönetici paneli (denetim, bağlantılar, mesajlar, yasaklama, işlem kaydı) i�
 Kod değişince varsayılan dala birleşmesi yeter: iş akışı yeni paketi üretir; Yol B'de Hostinger kendiliğinden
 çeker, Yol A'da yeni zip'i yüklersiniz. Veritabanı şeması değiştiğinde (`supabase/schema.sql`) dosyayı
 Supabase SQL Editor'de yeniden çalıştırmayı unutmayın; tekrar çalıştırmak zararsızdır.
+
+## Telefonda "bazen eski uygulama açılıyor"
+
+Eski sürüm telefonlara bir servis çalışıcısı (`sw.js`) kurup sayfaları kaydediyordu; çalışıcı kalınca kiracim.online
+yeni site yerine eski uygulamayı gösterebilir. Yeni derleme kökte aynı adlı bir `sw.js` getirir: telefon bunu eski
+çalışıcının yerine alır, kayıtlı eski sayfaları siler, kendini kaldırır ve sekmeyi yeniler. Ayrıca site açılırken
+eski çalışıcı ve `evim-` önbelleği ayrıca temizlenir.
+
+- Bu dosyayı **silmeyin**; eski ziyaretçiler gidene kadar (birkaç ay) kalmalı.
+- Sunucuda `sw.js` önbelleğe alınmamalı (`.htaccess` bunu yapar).
+- Alan adı hâlâ eski dosyaları sunuyorsa (public_html'de eski `index.html`), önce yeni derlemeyi yükleyin.
+- Bir telefon takılı kalırsa: Safari → Ayarlar → Safari → Geçmişi ve Web Sitesi Verilerini Sil, ya da ana ekran
+  simgesini silip siteyi yeniden ekleyin.

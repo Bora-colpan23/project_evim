@@ -24,6 +24,13 @@ export default function Root() {
       if (Platform.OS === 'web') setTimeout(apply, 80); else apply();
     });
   }, []);
+  // Eski uygulamanın servis çalışıcısı ve önbelleği telefonlarda kalmış olabilir ("bazen eski uygulama açılıyor"):
+  // bulunursa kaldırılır ve eski önbellek silinir. Yeni sitenin kendi çalışıcısı yoktur.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.getRegistrations().then((regs) => Promise.all(regs.map((r) => r.unregister()))).catch(() => {});
+    if (typeof caches !== 'undefined') caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith('evim-')).map((k) => caches.delete(k)))).catch(() => {});
+  }, []);
   const c = useColors();
   // Sayfa geçişlerinde sekme başlığı da değişsin (ekran okuyucu ve geçmiş için).
   const path = usePathname();

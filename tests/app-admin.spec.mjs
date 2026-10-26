@@ -304,6 +304,17 @@ test('güvenlik: her sayfada CSP var ve satır içi betiklerin hepsi özetle izi
   }
 });
 
+test('eski uygulamanın servis çalışıcısını temizleyen sw.js derlemeyle gelir ve önbelleğe alınmaz', () => {
+  const sw = readFileSync(DIST + '/sw.js', 'utf8');
+  expect(sw).toContain('skipWaiting');
+  expect(sw).toContain('caches.delete');
+  expect(sw).toContain('unregister');
+  expect(sw).not.toContain("addEventListener('fetch'");
+  const ht = readFileSync(DIST + '/.htaccess', 'utf8');
+  expect(ht).toMatch(/\^sw\\\.js\$[\s\S]*no-cache/);
+  expect(readFileSync(DIST + '/_headers', 'utf8')).toContain('/sw.js');
+});
+
 test('Hostinger: .htaccess (HTTPS, temiz adresler, başlıklar) ve manifest derlemeyle gelir; her uygulama sayfası .html dosyasıdır', () => {
   const ht = readFileSync(DIST + '/.htaccess', 'utf8');
   expect(ht).toContain('RewriteRule ^(.+)$ $1.html [L]');
@@ -330,6 +341,8 @@ test('güvenlik: CSP ihlali yok ve çerçeve koruması başka siteye gömmeyi en
   try {
     await page.goto('http://localhost:8202/');
     await expect.poll(async () => {
+      // Koruma ya çerçeveyi gizler ya da üst sayfayı kendi adresine götürür; ikisi de gömmeyi engeller.
+      if (page.url().startsWith(url('/'))) return 'none';
       const f = page.frames().find((x) => x.url().startsWith(url('/')));
       return f ? await f.evaluate(() => document.documentElement.style.display).catch(() => '') : '';
     }, { timeout: 20000 }).toBe('none');

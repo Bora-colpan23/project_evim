@@ -42,6 +42,10 @@ Header always set Content-Security-Policy "frame-ancestors 'none'"
 <FilesMatch "\.(js|png|jpg|jpeg|webp|svg|ttf|woff2?|ico)$">
   Header set Cache-Control "public, max-age=31536000, immutable"
 </FilesMatch>
+# Eski servis çalışıcısını temizleyen dosya hiç önbelleğe alınmasın (yukarıdaki .js kuralını ezer).
+<FilesMatch "^sw\.js$">
+  Header set Cache-Control "no-cache, max-age=0"
+</FilesMatch>
 <FilesMatch "^(manifest\.webmanifest|security\.txt)$">
   Header set Cache-Control "public, max-age=86400"
 </FilesMatch>
